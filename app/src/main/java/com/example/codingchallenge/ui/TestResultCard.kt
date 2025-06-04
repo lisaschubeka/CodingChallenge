@@ -1,39 +1,62 @@
 package com.example.codingchallenge.ui
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.codingchallenge.HL7ViewModel
+import com.example.codingchallenge.model.TestResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TestResultCard(
-    testName: String, value: Float, unit: String, range: String?, note: String?
+    viewModel: HL7ViewModel, testResult: TestResult
 ) {
+
+    val notReadResults by viewModel.notReadResults.collectAsState()
+
+    val notRead = notReadResults.any { it.id == testResult.id }
 
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,
     )
 
-    val (normalMin, normalMax, isLessThanOnly) = parseRange(range)
+    val (normalMin, normalMax, isLessThanOnly) = parseRange(testResult.range)
 
-    val isTooLow = normalMin != null && value < normalMin
-    val isTooHigh =
-        (normalMax != null && value > normalMax) || (isLessThanOnly && value >= normalMax!!)
-    // TODO move some of this into the ViewModel, too much code
+    val isTooLow = normalMin != null && (((testResult.value.toFloatOrNull()) ?: 0f) < normalMin)
 
+    val isTooHigh = (normalMax != null && ((testResult.value.toFloatOrNull())
+        ?: 0f) > normalMax) || (isLessThanOnly && ((testResult.value.toFloatOrNull())
+        ?: 0f) >= normalMax!!)
 
     Card(
         modifier = Modifier
@@ -42,75 +65,39 @@ fun TestResultCard(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
         colors = CardColors(Color.White, Color.Black, Color.LightGray, Color.DarkGray),
-        onClick = {showBottomSheet = true}
-    ) {
+        onClick = {
+            showBottomSheet = true
+            viewModel.removeTestResult(testResult.id)
+        }) {
         Column(
             Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
-            Text(
-                testName, fontSize = 18.sp, fontWeight = FontWeight.SemiBold
-            )
-            Text("in $unit", style = MaterialTheme.typography.labelSmall)
+            Row(
+                Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    testResult.testName, fontSize = 18.sp, fontWeight = FontWeight.SemiBold
+                )
+                Icon(
+                    imageVector = if (notRead) Icons.Filled.Info else Icons.Outlined.CheckCircle,
+                    contentDescription = if (notRead) "Nicht gelesen" else "Gelesen",
+                    tint = if (notRead) Color.Red else Color.Gray,
+                )
+            }
+            Text("in ${testResult.unit}", style = MaterialTheme.typography.labelSmall)
 
             Spacer(Modifier.height(1.dp))
 
-            RangeBar(value, range, normalMin, normalMax, isLessThanOnly)
+            RangeBar(
+                ((testResult.value.toFloatOrNull()) ?: 0f), normalMin, normalMax, isLessThanOnly
+            )
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-                // TODO remove boarder dont have it white
-                if (note != null) {
-                    AssistChip(
-                        onClick = { },
-                        label = {
-                            Text(
-                                "Notiz", color = Color(0xFF2683CD), fontSize = 13.sp
-                            )
-                        },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = Color(0xFFE2EEF7)
-                        ),
-                        border = BorderStroke(0.dp, Color.White),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.MailOutline,
-                                contentDescription = "Warning Icon",
-                                tint = Color(0xFF2683CD)
-                            )
-                        },
-                    )
-                    Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.height(3.dp))
 
-                }
-                // TODO remove boarder dont have it white
-                // Warning label if needed
-                if (isTooHigh || isTooLow) {
-                    AssistChip(
-                        onClick = { },
-                        label = {
-                            Text(
-                                if (isTooHigh) "Erhöhter Wert" else "Niedriger Wert",
-                                color = Color(0xFFD32F2F),
-                                fontSize = 13.sp
-                            )
-                        },
-                        shape = RoundedCornerShape(8.dp),
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = Color(0xFFFFCDD2),
-                        ),
-                        border = BorderStroke(0.dp, Color.White),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Filled.Warning,
-                                contentDescription = "Warning Icon",
-                                tint = Color(0xFFD32F2F)
-                            )
-                        },
-                    )
-                }
-            }
+            BottomChips(testResult.note, isTooHigh, isTooLow)
+
             if (showBottomSheet) {
                 ModalBottomSheet(
                     modifier = Modifier.fillMaxHeight(),
@@ -118,7 +105,15 @@ fun TestResultCard(
                     onDismissRequest = { showBottomSheet = false },
                     containerColor = Color.White
                 ) {
-                    BottomSheet(testName, note, {RangeBar(value, range, normalMin, normalMax, isLessThanOnly)})
+                    BottomSheet(
+                        testResult.testName, testResult.note, {
+                            RangeBar(
+                                ((testResult.value.toFloatOrNull()) ?: 0f),
+                                normalMin,
+                                normalMax,
+                                isLessThanOnly
+                            )
+                        })
                 }
             }
         }
@@ -128,7 +123,6 @@ fun TestResultCard(
 private fun parseRange(range: String?): Triple<Float?, Float?, Boolean> {
     val trimmed = range?.trim() ?: ""
 
-    // TODO handle > in the future
     return when {
         trimmed.startsWith("<") -> {
             val upper = trimmed.removePrefix("<").trim().toFloatOrNull()

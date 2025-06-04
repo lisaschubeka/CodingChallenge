@@ -1,4 +1,5 @@
 package com.example.codingchallenge
+
 import android.util.Log
 
 class HL7Parser {
@@ -14,9 +15,7 @@ class HL7Parser {
     fun parseHL7Data(hl7Message: String): Map<String, List<List<List<String>>>> {
         val parsedData = mutableMapOf<String, MutableList<MutableList<MutableList<String>>>>()
 
-        val segments = hl7Message.split('\r', '\n')
-            .filter { it.isNotBlank() } // Remove empty lines
-
+        val segments = hl7Message.split('\r', '\n').filter { it.isNotBlank() }
         if (segments.isEmpty()) {
             Log.w(TAG, "No segments found in the HL7 message.")
             return parsedData
@@ -39,11 +38,11 @@ class HL7Parser {
                 val segmentName = fields[0]
 
                 // Deliberate ignored the other delimiters due to time constraints
-                val processedFields : MutableList<MutableList<String>> = fields.map { field ->
+                val processedFields: MutableList<MutableList<String>> = fields.map { field ->
                     field.split(componentDelimiter).toMutableList()
                 }.toMutableList()
 
-                if (segmentName == "NTE" ) {
+                if (segmentName == "NTE") {
                     processedFields.add(0, mutableListOf(prevSegmentId))
                 } else {
                     if (fields.size > 1) {
@@ -61,7 +60,7 @@ class HL7Parser {
         return parsedData
     }
 
-    private fun hasInvalidTestValue(obxValues:  MutableList<MutableList<String>>): Boolean {
+    private fun hasInvalidTestValue(obxValues: MutableList<MutableList<String>>): Boolean {
         for (list in obxValues) {
             for (parsedValue in list) {
                 if (parsedValue.contains("!!Storno")) {
@@ -84,7 +83,10 @@ class HL7Parser {
                 if (encodingChars.length >= 3) escapeCharacter = encodingChars[2]
                 if (encodingChars.length >= 4) subComponentDelimiter = encodingChars[3]
             }
-            Log.d(TAG, "Delimiters updated: Field='$fieldDelimiter', Component='$componentDelimiter', Repetition='$repetitionDelimiter', Escape='$escapeCharacter', SubComponent='$subComponentDelimiter'")
+            Log.d(
+                TAG,
+                "Delimiters updated: Field='$fieldDelimiter', Component='$componentDelimiter', Repetition='$repetitionDelimiter', Escape='$escapeCharacter', SubComponent='$subComponentDelimiter'"
+            )
         }
     }
 }

@@ -26,13 +26,13 @@ import androidx.compose.ui.zIndex
 
 @Composable
 fun RangeBar(
-    value: Float, range: String?, normalMin: Float?, normalMax: Float?, isLessThanOnly: Boolean
+    value: Float, normalMin: Float?, normalMax: Float?, isLessThanOnly: Boolean
 ) {
 
     val green = Color(0xFF4CAF50)
     val yellow = Color(0xFFFFC107)
     val red = Color(0xFFF44336)
-    var indicatorColor : Color = Color(0xFF8F8F8F)
+    var indicatorColor = Color(0xFF8F8F8F)
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val totalWidth = maxWidth
@@ -57,7 +57,7 @@ fun RangeBar(
                         val diff = (value - normalMax)
                         val offsetInYellowRange = diff /scale
                         indicatorColor = yellow
-                        0.5f + offsetInYellowRange
+                        0.5f + offsetInYellowRange/4
                     }
                 } else {
                     0.5f
