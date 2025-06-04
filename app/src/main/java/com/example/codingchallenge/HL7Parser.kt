@@ -4,6 +4,8 @@ import android.util.Log
 
 class HL7Parser {
 
+    // The Parser ignores all OBX entries that either don't contain a range or valid values
+
     private val TAG = "Hl7Parser"
 
     private var fieldDelimiter: Char = '|'
@@ -31,7 +33,6 @@ class HL7Parser {
         for (segmentString in segments) {
             if (segmentString.isBlank()) continue
 
-            // Split segment into fields using the determined field delimiter
             val fields = segmentString.split(fieldDelimiter)
 
             if (fields.isNotEmpty()) {
