@@ -12,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
@@ -42,7 +41,8 @@ fun TestResultCard(
             .padding(8.dp),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
-        colors = CardColors(Color.White, Color.Black, Color.LightGray, Color.DarkGray)
+        colors = CardColors(Color.White, Color.Black, Color.LightGray, Color.DarkGray),
+        onClick = {showBottomSheet = true}
     ) {
         Column(
             Modifier
@@ -62,7 +62,7 @@ fun TestResultCard(
                 // TODO remove boarder dont have it white
                 if (note != null) {
                     AssistChip(
-                        onClick = { showBottomSheet = true },
+                        onClick = { },
                         label = {
                             Text(
                                 "Notiz", color = Color(0xFF2683CD), fontSize = 13.sp

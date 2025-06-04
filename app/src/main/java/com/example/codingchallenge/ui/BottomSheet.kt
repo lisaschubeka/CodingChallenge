@@ -56,18 +56,18 @@ fun BottomSheet(
 
         }
         Spacer(Modifier.height(16.dp))
-        Row(Modifier.align(alignment = Alignment.Start), ) {
-            Icon(
-                imageVector = Icons.Default.MailOutline,
-                contentDescription = "Warning Icon",
-                tint = Color(0xFF2683CD)
-            )
-            Spacer(Modifier.padding(2.dp))
-            Text("Notiz", fontWeight = FontWeight.Bold)
-        }
-        Spacer(Modifier.height(8.dp))
 
         if (note != null) {
+            Row(Modifier.align(alignment = Alignment.Start), ) {
+                Icon(
+                    imageVector = Icons.Default.MailOutline,
+                    contentDescription = "Warning Icon",
+                    tint = Color(0xFF2683CD)
+                )
+                Spacer(Modifier.padding(2.dp))
+                Text("Notiz", fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(8.dp))
             Text(
                 note,
                 color = Color.Black,
