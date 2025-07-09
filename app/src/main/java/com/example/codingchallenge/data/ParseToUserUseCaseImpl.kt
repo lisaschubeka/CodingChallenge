@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 class ParseToUserUseCaseImpl @Inject constructor() : ParseToUserUseCase {
     override fun parseToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {
-        val name = pidSegment?.patientName ?: "Unknown"
+        val name = pidSegment?.patientName?.split("^")?.get(1) ?: "Unknown"
         val dob = pidSegment?.dateTimeOfBirth ?: "Unknown"
         val diaryNumber = mshSegment?.receivingFacility ?: "Unknown"
         return User(name, diaryNumber, dob)

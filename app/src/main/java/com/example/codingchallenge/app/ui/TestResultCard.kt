@@ -79,10 +79,9 @@ fun TestResultCard(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    if (testResult.testName.length > 20) {
-                        testResult.testName.take(20)
-                    } else {
-                        testResult.testName
+                    run {
+                        val regex = "\\s{3,}".toRegex()
+                        testResult.testName.replace(regex, " ")
                     }, fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
