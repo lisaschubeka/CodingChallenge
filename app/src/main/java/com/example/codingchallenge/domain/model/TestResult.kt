@@ -1,7 +1,7 @@
 package com.example.codingchallenge.domain.model
 
 data class TestResult(
-    val id: String,
+    val id: Long,
     var testName: String,
     val value: String,
     val unit: String,

@@ -40,11 +40,7 @@ import com.example.codingchallenge.domain.model.TestResult
 fun TestResultCard(
     viewModel: HL7ViewModel, testResult: TestResult
 ) {
-
-    val notReadResults by viewModel.notReadResults.collectAsState()
-
-    val notRead = notReadResults.any { it.id == testResult.id }
-
+    val notRead = viewModel.isTestResultRead(testResult.id).collectAsState(initial = false)
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,
@@ -68,7 +64,7 @@ fun TestResultCard(
         colors = CardColors(Color.White, Color.Black, Color.LightGray, Color.DarkGray),
         onClick = {
             showBottomSheet = true
-            viewModel.removeTestResult(testResult.id)
+            viewModel.markTestResultAsRead(id = testResult.id)
         }) {
         Column(
             Modifier
@@ -86,9 +82,9 @@ fun TestResultCard(
                     fontWeight = FontWeight.SemiBold
                 )
                 Icon(
-                    imageVector = if (notRead) Icons.Filled.Info else Icons.Outlined.CheckCircle,
-                    contentDescription = if (notRead) "Nicht gelesen" else "Gelesen",
-                    tint = if (notRead) Color.Red else Color.Gray,
+                    imageVector = if (notRead.value) Icons.Outlined.CheckCircle else Icons.Filled.Info,
+                    contentDescription = if (notRead.value) "Gelesen" else "Nicht gelesen",
+                    tint = if (notRead.value) Color.Gray else Color.Red,
                 )
             }
             Text("in ${testResult.unit}", style = MaterialTheme.typography.labelSmall)

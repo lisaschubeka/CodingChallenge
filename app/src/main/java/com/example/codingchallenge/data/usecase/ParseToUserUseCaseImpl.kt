@@ -1,4 +1,4 @@
-package com.example.codingchallenge.data
+package com.example.codingchallenge.data.usecase
 
 import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment

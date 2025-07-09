@@ -5,10 +5,10 @@ import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 
-// Only contains relevant classes
-data class HL7Message(
+// Only contains relevant classes for this project
+data class HL7Data(
     val msh: MSHSegment?,
     val pid: PIDSegment?,
     val obxSegmentList: List<OBXSegment> = emptyList(),
-    val nteMap: Map<Int, List<NTESegment>> = emptyMap(),
+    val nteMap: Map<Long, List<NTESegment>> = emptyMap(),
 )

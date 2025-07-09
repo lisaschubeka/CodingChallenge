@@ -1,4 +1,4 @@
-package com.example.codingchallenge.data
+package com.example.codingchallenge.data.usecase
 
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
@@ -79,7 +79,7 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
 
     override fun createOBXSegment(stringSegment: List<String>): OBXSegment {
         return OBXSegment(
-            setID = stringSegment.getOrNull(0),                     // OBX.1
+            setID = stringSegment.getOrNull(0)?.toLong(),                     // OBX.1
             valueType = stringSegment.getOrNull(1),                 // OBX.2
             observationIdentifier = stringSegment.getOrNull(2),     // OBX.3
             observationSubID = stringSegment.getOrNull(3),          // OBX.4

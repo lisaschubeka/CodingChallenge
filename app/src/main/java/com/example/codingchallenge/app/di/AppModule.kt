@@ -1,13 +1,17 @@
 package com.example.codingchallenge.app.di
 
-import com.example.codingchallenge.data.CreateSegmentUseCaseImpl
-import com.example.codingchallenge.data.ParseToHL7MsgUseCaseImpl
-import com.example.codingchallenge.data.ParseToTestResultsUseCaseImpl
-import com.example.codingchallenge.data.ParseToUserUseCaseImpl
+import com.example.codingchallenge.data.repository.OBXReadStatusRepositoryImpl
+import com.example.codingchallenge.data.usecase.CreateSegmentUseCaseImpl
+import com.example.codingchallenge.data.usecase.OBXReadStatusUseCaseImpl
+import com.example.codingchallenge.data.usecase.ParseToTestResultsUseCaseImpl
+import com.example.codingchallenge.data.usecase.ParseToUserUseCaseImpl
+import com.example.codingchallenge.data.usecase.ProcessHL7DataUseCaseImpl
+import com.example.codingchallenge.domain.repository.OBXReadStatusRepository
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
-import com.example.codingchallenge.domain.usecase.ParseToHL7MsgUseCase
+import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import com.example.codingchallenge.domain.usecase.ParseToTestResultsUseCase
 import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
+import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -19,8 +23,8 @@ abstract class hl7Module {
 
     @Binds
     abstract fun bindParseToHLZMsgUseCase(
-        impl: ParseToHL7MsgUseCaseImpl
-    ): ParseToHL7MsgUseCase
+        impl: ProcessHL7DataUseCaseImpl
+    ): ProcessHL7DataUseCase
 
     @Binds
     abstract fun bindCreateSegmentUseCase(
@@ -36,4 +40,14 @@ abstract class hl7Module {
     abstract fun bindParseToTestResultsUseCase(
         impl: ParseToTestResultsUseCaseImpl
     ): ParseToTestResultsUseCase
+
+    @Binds
+    abstract fun bindOBXReadStatusUseCase(
+        impl: OBXReadStatusUseCaseImpl
+    ): OBXReadStatusUseCase
+
+    @Binds
+    abstract fun bindOBXReadStatusRepository(
+        impl: OBXReadStatusRepositoryImpl
+    ): OBXReadStatusRepository
 }

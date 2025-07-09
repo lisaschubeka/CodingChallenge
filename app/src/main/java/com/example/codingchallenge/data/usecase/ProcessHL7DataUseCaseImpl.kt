@@ -1,31 +1,35 @@
-package com.example.codingchallenge.data
+package com.example.codingchallenge.data.usecase
 
 import android.util.Log
-import com.example.codingchallenge.domain.model.HL7Message
+import com.example.codingchallenge.data.HL7_FILE
+import com.example.codingchallenge.domain.model.HL7Data
+import com.example.codingchallenge.domain.model.TestResult
+import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
-import com.example.codingchallenge.domain.usecase.ParseToHL7MsgUseCase
+import com.example.codingchallenge.domain.usecase.ParseToTestResultsUseCase
+import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
+import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import javax.inject.Inject
 
-class ParseToHL7MsgUseCaseImpl @Inject constructor(
-    private val segmentCreator: CreateSegmentUseCase
-) : ParseToHL7MsgUseCase {
+class ProcessHL7DataUseCaseImpl @Inject constructor(
+    private val segmentCreator: CreateSegmentUseCase,
+    private val parseToUserUseCase: ParseToUserUseCase,
+    private val parseToTestResultsUseCase: ParseToTestResultsUseCase
+) : ProcessHL7DataUseCase {
 
     private val TAG = "Hl7Parser"
     private var fieldDelimiter: Char = '|'
 
-    // TODO this should be moved somewhere else or dealt with
-    private var componentDelimiter: Char = '^'
-
-    override fun parseToHL7Msg(): HL7Message? {
+    override fun parseToHL7Data(): HL7Data? {
         var mshSegment: MSHSegment? = null
         var pidSegment: PIDSegment? = null
         val obxList = mutableListOf<OBXSegment>()
         // Map of the OBX id to the corresponding NTE note
-        val obxToNteMap = mutableMapOf<Int, MutableList<NTESegment>>()
+        val obxToNteMap = mutableMapOf<Long, MutableList<NTESegment>>()
 
         val segments = HL7_FILE.split('\r', '\n').filter { it.isNotBlank() }
         if (segments.isEmpty()) {
@@ -33,7 +37,7 @@ class ParseToHL7MsgUseCaseImpl @Inject constructor(
             return null
         }
 
-        var obxNr = 0
+        var obxNr = 0L
         for (segmentString in segments) {
             if (segmentString.isBlank()) continue
 
@@ -45,17 +49,20 @@ class ParseToHL7MsgUseCaseImpl @Inject constructor(
             fields.removeAt(0)
             if (segmentName == "OBX") {
                 try {
-                    obxNr = fields[0].toInt()
+                    obxNr = fields[0].toLong()
                 } catch (e: NumberFormatException) {
                     Log.w(TAG, e)
                     obxNr = -1
                 }
                 val obxSegment = segmentCreator.createOBXSegment(fields)
-                obxList.add(obxSegment)
+                if (!obxSegment.referencesRange.isNullOrBlank() && obxSegment.observationValue != "!!Storno") {
+                    obxSegment.referencesRange.let { Log.w(TAG, it) }
+                    obxList.add(obxSegment)
+                }
             }
             // if obxNr is -1, then it is unclear where the NTE segment belongs to and
             // it will be ignored
-            else if (segmentName == "NTE" && obxNr != -1) {
+            else if (segmentName == "NTE" && obxNr != -1L) {
 
                 val nteSegment = segmentCreator.createNTESegment(fields)
 
@@ -71,6 +78,17 @@ class ParseToHL7MsgUseCaseImpl @Inject constructor(
 
         }
 
-        return HL7Message(mshSegment, pidSegment, obxList, obxToNteMap)
+        return HL7Data(mshSegment, pidSegment, obxList, obxToNteMap)
+    }
+
+    override fun mapToTestResult(
+        obxSegments: List<OBXSegment>,
+        nteMap: Map<Long, List<NTESegment>>
+    ): List<TestResult> {
+        return parseToTestResultsUseCase.parseToTestResults(obxSegments, nteMap)
+    }
+
+    override fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {
+        return parseToUserUseCase.parseToUser(pidSegment, mshSegment)
     }
 }

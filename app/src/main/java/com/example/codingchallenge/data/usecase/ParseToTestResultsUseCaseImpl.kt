@@ -1,4 +1,4 @@
-package com.example.codingchallenge.data
+package com.example.codingchallenge.data.usecase
 
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
@@ -9,21 +9,17 @@ import javax.inject.Inject
 class ParseToTestResultsUseCaseImpl @Inject constructor() : ParseToTestResultsUseCase {
     override fun parseToTestResults(
         obxSegments: List<OBXSegment>,
-        nteMap: Map<Int, List<NTESegment>>
+        nteMap: Map<Long, List<NTESegment>>
     ): List<TestResult> {
-        return obxSegments.mapNotNull { obxSegment ->
+        return obxSegments.map { obxSegment ->
 
-            if (!hasValidTestValue(obxSegment) || !hasValidTestRange(obxSegment)) {
-                return@mapNotNull null
-            }
-
-            val id = obxSegment.setID ?: ""
+            val id = obxSegment.setID ?: -1L // TODO check if -1 is ever fulfilled
             val testName = obxSegment.observationIdentifier?.split("^")?.get(1) ?: ""
             val value = obxSegment.observationValue ?: ""
             val unit = obxSegment.units ?: ""
             val range = obxSegment.referencesRange ?: ""
 
-            val note = nteMap[obxSegment.setID?.toIntOrNull()]
+            val note = nteMap[obxSegment.setID]
                 ?.mapNotNull { it.comment?.trim() }
                 ?.joinToString(separator = " ") ?: ""
 

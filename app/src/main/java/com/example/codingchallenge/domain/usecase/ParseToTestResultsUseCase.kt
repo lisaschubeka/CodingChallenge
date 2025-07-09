@@ -7,6 +7,6 @@ import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 interface ParseToTestResultsUseCase {
     fun parseToTestResults(
         obxSegments: List<OBXSegment>,
-        nteMap: Map<Int, List<NTESegment>>
+        nteMap: Map<Long, List<NTESegment>>
     ): List<TestResult>
 }

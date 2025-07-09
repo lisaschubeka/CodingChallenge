@@ -28,7 +28,7 @@ fun StatusCountDisplay(
     subLabel: String? = null,
 ) {
 
-    val testResults by viewModel.notReadResults.collectAsState()
+    val testResults by viewModel.unreadObxCount.collectAsState(initial = 0)
 
     Row(
         modifier = Modifier.padding(horizontal = 36.dp, vertical = 16.dp),
@@ -51,7 +51,7 @@ fun StatusCountDisplay(
                 // TODO should be ${testResults.size}, there is a bug here yet to be fixed.
                 // TODO The bug is that there are (actual testResults + 1) in viewModel.notReadResults
                 Text(
-                    text = "${testResults.size - 1}",
+                    text = "${testResults - 1}",
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )

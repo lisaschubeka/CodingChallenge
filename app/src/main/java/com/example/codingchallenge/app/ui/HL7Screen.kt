@@ -20,12 +20,12 @@ fun HL7Screen(viewModel: HL7ViewModel) {
 
     val user by viewModel.user.collectAsState()
     val testResults by viewModel.testResults.collectAsState()
-    val notReadResults by viewModel.notReadResults.collectAsState()
+    val unreadCount by viewModel.unreadObxCount.collectAsState(initial = 0)
 
     Column {
         UserHeader(user, viewModel)
 
-        if (notReadResults.size > 1) {
+        if (unreadCount > 0) {
             StatusCountDisplay(viewModel, "auffällige Befunde", "Überprüfung notwendig")
         }
         Column(Modifier.padding(16.dp)) {

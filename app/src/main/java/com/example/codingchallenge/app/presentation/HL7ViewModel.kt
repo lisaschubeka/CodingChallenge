@@ -4,14 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
-import com.example.codingchallenge.domain.usecase.ParseToHL7MsgUseCase
-import com.example.codingchallenge.domain.usecase.ParseToTestResultsUseCase
-import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
+import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
+import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -19,9 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HL7ViewModel @Inject constructor(
-    private val parseToHL7MsgUseCase: ParseToHL7MsgUseCase,
-    private val parseToUserUseCase: ParseToUserUseCase,
-    private val parseToTestResultsUseCase: ParseToTestResultsUseCase
+    private val processHL7DataUseCase: ProcessHL7DataUseCase,
+    private val obxReadStatusUseCase: OBXReadStatusUseCase
 ) : ViewModel() {
 
     private val _user = MutableStateFlow(User("", "", ""))
@@ -30,8 +28,7 @@ class HL7ViewModel @Inject constructor(
     private val _testResults = MutableStateFlow<List<TestResult>>(emptyList())
     val testResults: StateFlow<List<TestResult>> = _testResults
 
-    private val _readTestResults = MutableStateFlow<List<TestResult>>(emptyList())
-    val notReadResults: StateFlow<List<TestResult>> = _readTestResults
+    val unreadObxCount: Flow<Int> = obxReadStatusUseCase.getAmountObxNotRead()
 
     init {
         parseHL7Message()
@@ -39,29 +36,37 @@ class HL7ViewModel @Inject constructor(
 
     private fun parseHL7Message() {
         viewModelScope.launch {
-            val hl7parsed = parseToHL7MsgUseCase.parseToHL7Msg()
+            val hl7parsed = processHL7DataUseCase.parseToHL7Data()
 
             if (hl7parsed != null) {
-                _user.value = parseToUserUseCase.parseToUser(hl7parsed.pid, hl7parsed.msh)
+                obxReadStatusUseCase.addObxIdsAsUnread(hl7parsed.obxSegmentList.mapNotNull {
+                    it.setID
+                })
+            }
+
+            if (hl7parsed != null) {
+                _user.value = processHL7DataUseCase.mapToUser(hl7parsed.pid, hl7parsed.msh)
 
             }
 
             val obrResults = hl7parsed?.let {
-                parseToTestResultsUseCase.parseToTestResults(it.obxSegmentList, it.nteMap)
+                processHL7DataUseCase.mapToTestResult(it.obxSegmentList, it.nteMap)
             } ?: emptyList()
 
             _testResults.value = obrResults
-            _readTestResults.value = obrResults
         }
     }
 
-    fun removeTestResult(id: String) {
-        _readTestResults.update { currentList ->
-            currentList.filter { it.id != id }
+    fun markTestResultAsRead(id: Long) {
+        viewModelScope.launch {
+            obxReadStatusUseCase.markObxAsRead(id, true)
         }
     }
 
-    // TODO should the following two functions be here? do UI formatting stuff
+    fun isTestResultRead(id: Long): Flow<Boolean> {
+        return obxReadStatusUseCase.observeObxReadStatus(id)
+    }
+
     fun parseRange(range: String?): Pair<Float?, Float?> {
         val trimmed = range?.trim() ?: ""
 
