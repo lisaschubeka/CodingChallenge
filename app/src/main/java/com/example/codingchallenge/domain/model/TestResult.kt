@@ -1,6 +1,6 @@
-package com.example.codingchallenge.model
+package com.example.codingchallenge.domain.model
 
-class TestResult (
+data class TestResult(
     val id: String,
     var testName: String,
     val value: String,

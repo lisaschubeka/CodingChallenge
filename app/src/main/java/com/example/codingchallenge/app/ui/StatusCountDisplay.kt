@@ -1,4 +1,4 @@
-package com.example.codingchallenge.ui
+package com.example.codingchallenge.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.codingchallenge.HL7ViewModel
+import com.example.codingchallenge.app.presentation.HL7ViewModel
 
 @Composable
 fun StatusCountDisplay(

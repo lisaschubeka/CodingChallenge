@@ -1,4 +1,4 @@
-package com.example.codingchallenge.ui
+package com.example.codingchallenge.app.ui
 
 
 import androidx.compose.foundation.background
@@ -24,12 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.codingchallenge.model.User
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.example.codingchallenge.app.presentation.HL7ViewModel
+import com.example.codingchallenge.domain.model.User
+
 
 @Composable
-fun UserHeader(user: User?) {
+fun UserHeader(user: User?, viewModel: HL7ViewModel) {
     user?.let {
         Column(
             modifier = Modifier
@@ -77,7 +77,7 @@ fun UserHeader(user: User?) {
                         text = "GEBURTSDATUM", fontSize = 12.sp, color = Color.LightGray
                     )
                     Text(
-                        text = formatBirthday(it.birthday),
+                        text = viewModel.formatBirthday(it.birthday),
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
@@ -92,18 +92,5 @@ fun UserHeader(user: User?) {
                 }
             }
         }
-    }
-}
-
-private fun formatBirthday(dateString: String): String {
-    val inputFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-    val outputFormat = SimpleDateFormat("d.M.yyyy", Locale.GERMAN)
-
-    try {
-        val date = inputFormat.parse(dateString)
-        return date?.let { outputFormat.format(it) } ?: ""
-    } catch (e: Exception) {
-        println("Error formatting birthday: ${e.message}")
-        return dateString
     }
 }

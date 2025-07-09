@@ -1,4 +1,4 @@
-package com.example.codingchallenge.ui
+package com.example.codingchallenge.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,7 +26,7 @@ import androidx.compose.ui.zIndex
 
 @Composable
 fun RangeBar(
-    value: Float, normalMin: Float?, normalMax: Float?, isLessThanOnly: Boolean
+    value: Float, normalMin: Float?, normalMax: Float?
 ) {
 
     val green = Color(0xFF4CAF50)
@@ -37,69 +37,69 @@ fun RangeBar(
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val totalWidth = maxWidth
         val indicatorOffset: Float = when {
-            isLessThanOnly -> {
-                if (normalMax != null) {
-                    if (value < normalMax) {
-                        indicatorColor = green
-                        value / (normalMax * 2)
-
-                    }
-                    // upper red bar
-                    else if (value > normalMax + (normalMax)/2) {
-                        // TODO implement logic for red
-                        // TODO this only handles extreme values that do not fit on scale
-                        indicatorColor = red
-                        1f
-                    }
-                    // upper yellow bar
-                    else {
-                        val scale = normalMax/2
-                        val diff = (value - normalMax)
-                        val offsetInYellowRange = diff /scale
-                        indicatorColor = yellow
-                        0.5f + offsetInYellowRange/4
-                    }
+            normalMin != null && normalMax != null -> {
+                if (value < normalMax && value > normalMin) {
+                    val scale = normalMax - normalMin
+                    val diff = value - normalMin
+                    val offsetInGreenRange = diff / scale
+                    indicatorColor = green
+                    offsetInGreenRange / 3f + 0.3f
                 } else {
-                    0.5f
-                }
-            }
-            else -> {
-                if (normalMin != null && normalMax != null) {
-                    if (value < normalMax && value > normalMin) {
-                        val scale = normalMax - normalMin
-                        val diff = value - normalMin
-                        val offsetInGreenRange = diff / scale
-                        indicatorColor = green
-                        offsetInGreenRange / 3f + 0.3f
-                    } else {
-                        // TODO fill out other fields
-                        // indicator in lower red bar
-                        if (value < normalMin - (normalMax - normalMin)/2) {
-                            0.5f
+                    // TODO fill out other fields
+                    // indicator in lower red bar
+                    if (value < normalMin - (normalMax - normalMin) / 2) {
+                        0.5f
 
                         // indicator in lower yellow bar
-                        } else if (value < normalMin) {
-                            0.5f
+                    } else if (value < normalMin) {
+                        0.5f
 
                         // indicator is in the upper red bar
-                        } else if (value > normalMax + (normalMax - normalMin)/2) {
-                            0.5f
+                    } else if (value > normalMax + (normalMax - normalMin) / 2) {
+                        0.5f
 
                         // indicator is in the upper yellow bar
-                        } else if (value > normalMax) {
-                            val diff = value - normalMax
-                            val scale = normalMax + (normalMax - normalMin)/2 - normalMax
-                            indicatorColor = yellow
+                    } else if (value > normalMax) {
+                        val diff = value - normalMax
+                        val scale = normalMax + (normalMax - normalMin) / 2 - normalMax
+                        indicatorColor = yellow
 
-                            diff/scale + 2/3f
-                        } else 0.5f
-                    }
-                } else 0.5f
+                        diff / scale + 2 / 3f
+                    } else 0.5f
+                }
+            }
+
+            normalMax != null -> {
+                if (value < normalMax) {
+                    indicatorColor = green
+                    value / (normalMax * 2)
+
+                }
+                // upper red bar
+                else if (value > normalMax + (normalMax) / 2) {
+                    // TODO implement logic for red
+                    // TODO this only handles extreme values that do not fit on scale
+                    indicatorColor = red
+                    1f
+                }
+                // upper yellow bar
+                else {
+                    val scale = normalMax / 2
+                    val diff = (value - normalMax)
+                    val offsetInYellowRange = diff / scale
+                    indicatorColor = yellow
+                    0.5f + offsetInYellowRange / 4
+                }
+            }
+
+            else -> {
+                0.5f
             }
         }
 
         Box(
-            Modifier.offset(x = (indicatorOffset * totalWidth.value).dp - 20.dp, y= 4.5.dp)
+            Modifier
+                .offset(x = (indicatorOffset * totalWidth.value).dp - 20.dp, y = 4.5.dp)
                 .zIndex(1f)
 
         ) {
@@ -130,7 +130,7 @@ fun RangeBar(
                 .height(8.dp)
                 .align(Alignment.BottomCenter)
         ) {
-            if (isLessThanOnly) {
+            if (normalMin == null) {
                 Box(
                     Modifier
                         .weight(1f)
@@ -191,7 +191,7 @@ fun RangeBar(
         val oneThird = (maxWidth * 1f / 3f).value.dp
         val twoThirds = (maxWidth * 2f / 3f).value.dp
         val oneHalf = (maxWidth * 1f / 2f).value.dp
-        if (!isLessThanOnly) {
+        if (normalMin != null) {
             Box(Modifier.offset(x = oneThird - 12.dp, y = 5.dp)) {
                 Text("$normalMin", fontSize = 12.sp)
             }

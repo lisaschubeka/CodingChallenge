@@ -1,4 +1,4 @@
-package com.example.codingchallenge
+package com.example.codingchallenge.data
 
 const val HL7_FILE = "MSH|^~\\&|PROMED-OPEN|IMD Berlin MVZ|MCS|TESTX|20221123103004||ORU^R01|2211231030040555890287|P|2.3|||AL|AL|DE||DE|\n" +
         "PID|1||||Test^Jeannette HL7||19800101|O|||Test, Jeannette HL7^^^^^^^||||||||\n" +

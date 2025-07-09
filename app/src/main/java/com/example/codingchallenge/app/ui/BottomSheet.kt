@@ -1,4 +1,4 @@
-package com.example.codingchallenge.ui
+package com.example.codingchallenge.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

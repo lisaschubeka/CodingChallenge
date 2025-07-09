@@ -1,4 +1,4 @@
-package com.example.codingchallenge.ui
+package com.example.codingchallenge.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,8 +32,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.codingchallenge.HL7ViewModel
-import com.example.codingchallenge.model.TestResult
+import com.example.codingchallenge.app.presentation.HL7ViewModel
+import com.example.codingchallenge.domain.model.TestResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,13 +50,14 @@ fun TestResultCard(
         skipPartiallyExpanded = false,
     )
 
-    val (normalMin, normalMax, isLessThanOnly) = parseRange(testResult.range)
+    val (normalMin, normalMax) = viewModel.parseRange(testResult.range)
 
     val isTooLow = normalMin != null && (((testResult.value.toFloatOrNull()) ?: 0f) < normalMin)
 
-    val isTooHigh = (normalMax != null && ((testResult.value.toFloatOrNull())
-        ?: 0f) > normalMax) || (isLessThanOnly && ((testResult.value.toFloatOrNull())
-        ?: 0f) >= normalMax!!)
+    val isTooHigh = (normalMin == null && ((testResult.value.toFloatOrNull())
+        ?: 0f) >= normalMax!!) || (normalMax != null && ((testResult.value.toFloatOrNull())
+        ?: 0f) > normalMax)
+
 
     Card(
         modifier = Modifier
@@ -78,7 +79,12 @@ fun TestResultCard(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    testResult.testName, fontSize = 18.sp, fontWeight = FontWeight.SemiBold
+                    if (testResult.testName.length > 20) {
+                        testResult.testName.take(20)
+                    } else {
+                        testResult.testName
+                    }, fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
                 Icon(
                     imageVector = if (notRead) Icons.Filled.Info else Icons.Outlined.CheckCircle,
@@ -91,7 +97,7 @@ fun TestResultCard(
             Spacer(Modifier.height(1.dp))
 
             RangeBar(
-                ((testResult.value.toFloatOrNull()) ?: 0f), normalMin, normalMax, isLessThanOnly
+                ((testResult.value.toFloatOrNull()) ?: 0f), normalMin, normalMax
             )
 
             Spacer(Modifier.height(3.dp))
@@ -110,32 +116,11 @@ fun TestResultCard(
                             RangeBar(
                                 ((testResult.value.toFloatOrNull()) ?: 0f),
                                 normalMin,
-                                normalMax,
-                                isLessThanOnly
+                                normalMax
                             )
                         })
                 }
             }
         }
-    }
-}
-
-private fun parseRange(range: String?): Triple<Float?, Float?, Boolean> {
-    val trimmed = range?.trim() ?: ""
-
-    return when {
-        trimmed.startsWith("<") -> {
-            val upper = trimmed.removePrefix("<").trim().toFloatOrNull()
-            Triple(null, upper, true)
-        }
-
-        trimmed.contains("-") -> {
-            val parts = trimmed.split("-").map { it.trim() }
-            val low = parts.getOrNull(0)?.toFloatOrNull()
-            val high = parts.getOrNull(1)?.toFloatOrNull()
-            Triple(low, high, false)
-        }
-
-        else -> Triple(null, null, false)
     }
 }
