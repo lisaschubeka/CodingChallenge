@@ -8,9 +8,10 @@ import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -22,40 +23,47 @@ class HL7ViewModel @Inject constructor(
     private val obxReadStatusUseCase: OBXReadStatusUseCase
 ) : ViewModel() {
 
-    private val _user = MutableStateFlow(User("", "", ""))
-    val user: StateFlow<User> = _user.asStateFlow()
+    data class HL7UiState(
+        val isLoading: Boolean = true,
+        val user: User = User("", "", ""),
+        val testResults: List<TestResult> = emptyList()
+    )
 
-    private val _testResults = MutableStateFlow<List<TestResult>>(emptyList())
-    val testResults: StateFlow<List<TestResult>> = _testResults
+    val uiState: StateFlow<HL7UiState> = flow {
+        emit(HL7UiState(isLoading = true))
+
+        val hl7parsed = processHL7DataUseCase.parseToHL7Data()
+
+        if (hl7parsed != null) {
+            obxReadStatusUseCase.addObxIdsAsUnread(hl7parsed.obxSegmentList.mapNotNull {
+                it.setID
+            })
+        }
+
+        val currentUser = if (hl7parsed != null) {
+            processHL7DataUseCase.mapToUser(hl7parsed.pid, hl7parsed.msh)
+        } else {
+            User("", "", "")
+        }
+
+        val currentTestResults = hl7parsed?.let {
+            processHL7DataUseCase.mapToTestResult(it.obxSegmentList, it.nteMap)
+        } ?: emptyList()
+
+        emit(
+            HL7UiState(
+                isLoading = false,
+                user = currentUser,
+                testResults = currentTestResults
+            )
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HL7UiState()
+    )
 
     val unreadObxCount: Flow<Int> = obxReadStatusUseCase.getAmountObxNotRead()
-
-    init {
-        parseHL7Message()
-    }
-
-    private fun parseHL7Message() {
-        viewModelScope.launch {
-            val hl7parsed = processHL7DataUseCase.parseToHL7Data()
-
-            if (hl7parsed != null) {
-                obxReadStatusUseCase.addObxIdsAsUnread(hl7parsed.obxSegmentList.mapNotNull {
-                    it.setID
-                })
-            }
-
-            if (hl7parsed != null) {
-                _user.value = processHL7DataUseCase.mapToUser(hl7parsed.pid, hl7parsed.msh)
-
-            }
-
-            val obrResults = hl7parsed?.let {
-                processHL7DataUseCase.mapToTestResult(it.obxSegmentList, it.nteMap)
-            } ?: emptyList()
-
-            _testResults.value = obrResults
-        }
-    }
 
     fun markTestResultAsRead(id: Long) {
         viewModelScope.launch {

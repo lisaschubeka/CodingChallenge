@@ -26,12 +26,4 @@ class ParseToTestResultsUseCaseImpl @Inject constructor() : ParseToTestResultsUs
             TestResult(id, testName, value, unit, range, note)
         }
     }
-
-    private fun hasValidTestRange(obxValue: OBXSegment): Boolean {
-        return !obxValue.referencesRange.isNullOrBlank()
-    }
-
-    private fun hasValidTestValue(obxValue: OBXSegment): Boolean {
-        return obxValue.observationValue != "!!Storno"
-    }
 }

@@ -18,19 +18,18 @@ import com.example.codingchallenge.app.presentation.HL7ViewModel
 @Composable
 fun HL7Screen(viewModel: HL7ViewModel) {
 
-    val user by viewModel.user.collectAsState()
-    val testResults by viewModel.testResults.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val unreadCount by viewModel.unreadObxCount.collectAsState(initial = 0)
 
     Column {
-        UserHeader(user, viewModel)
+        UserHeader(uiState.user, viewModel)
 
         if (unreadCount > 0) {
             StatusCountDisplay(viewModel, "auffällige Befunde", "Überprüfung notwendig")
         }
         Column(Modifier.padding(16.dp)) {
 
-            if (testResults.isNotEmpty()) {
+            if (uiState.testResults.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyColumn(
@@ -39,7 +38,7 @@ fun HL7Screen(viewModel: HL7ViewModel) {
                         .fillMaxWidth()
                         .padding(top = 8.dp)
                 ) {
-                    items(testResults) { result ->
+                    items(uiState.testResults) { result ->
 
                         result.value.toFloatOrNull()?.let { numericValue ->
 
