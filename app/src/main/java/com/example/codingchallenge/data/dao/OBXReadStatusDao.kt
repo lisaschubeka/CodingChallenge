@@ -20,9 +20,6 @@ interface OBXReadStatusDao {
     @Query("SELECT * FROM obx_read_status WHERE obx_id = :obxId LIMIT 1")
     fun getObxReadStatus(obxId: Long): Flow<ObxReadStatusEntity?>
 
-    @Query("SELECT * FROM obx_read_status WHERE obx_id IN (:obxIds)")
-    suspend fun getObxReadStatuses(obxIds: List<Long>): List<ObxReadStatusEntity>
-
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllObxAsUnread(statuses: List<ObxReadStatusEntity>)
 
