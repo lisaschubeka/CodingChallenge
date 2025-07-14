@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -45,27 +48,46 @@ fun UserHeader(user: User?, viewModel: HL7ViewModel) {
                 tint = Color.White,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+            Row(modifier = Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                Column {
+                    Text(
+                        text = it.name,
+                        fontSize = 24.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
 
-            Text(
-                text = it.name, fontSize = 24.sp, color = Color.White, fontWeight = FontWeight.Bold
-            )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFC107))
+                        )
+                        Text(
+                            text = "  Test Subject",
+                            color = Color(0xFFFFC107),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 4.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFFFC107))
-                )
-                Text(
-                    text = "  Test Subject",
-                    color = Color(0xFFFFC107),
-                    fontWeight = FontWeight.Medium
-                )
+                Button(
+                    onClick = { viewModel.loadFromFileAndSaveToDatabase() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                    ),
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text("Load Data")
+                }
             }
+
+
 
             Spacer(modifier = Modifier.height(16.dp))
 

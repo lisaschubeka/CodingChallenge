@@ -2,7 +2,7 @@ package com.example.codingchallenge.domain.model.hl7Segment
 
 data class NTESegment(
     // NTE.1 - Set ID - NTE (SI)
-    val setID: String?,
+    val setId: Long,
 
     // NTE.2 - Source of Comment (ID)
     val sourceOfComment: String?,

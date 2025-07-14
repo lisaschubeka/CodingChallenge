@@ -2,17 +2,27 @@ package com.example.codingchallenge.domain.model.hl7Segment
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-/**
-Not currently in use, MSH, NTE, OBX and PID segments are not saved to database, only the status of if OBX is read or not
- **/
-@Entity(tableName = "obx_segments")
+@Entity(
+    tableName = "obx_segments",
+    foreignKeys = [ForeignKey(
+        entity = MSHSegmentEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["msh_id"],
+        onDelete = ForeignKey.CASCADE
+    )]
+)
 data class OBXSegmentEntity(
     // OBX.1 - Set ID - OBX (SI)
     @PrimaryKey
     @ColumnInfo(name = "set_id")
-    val setId: Long?,
+    val setId: Long,
+
+    // Foreign key reference
+    @ColumnInfo(name = "msh_id", index = true)
+    val mshId: Long,
 
     // OBX.2 - Value Type (ID)
     @ColumnInfo(name = "value_type")
@@ -92,7 +102,33 @@ data class OBXSegmentEntity(
 
 fun OBXSegmentEntity.mapToDomain(): OBXSegment {
     return OBXSegment(
-        setID = this.setId,
+        setId = this.setId,
+        valueType = this.valueType,
+        observationIdentifier = this.observationIdentifier,
+        observationSubID = this.observationSubID,
+        observationValue = this.observationValue,
+        units = this.units,
+        referencesRange = this.referencesRange,
+        abnormalFlags = this.abnormalFlags,
+        probability = this.probability,
+        natureOfAbnormalTest = this.natureOfAbnormalTest,
+        observationResultStatus = this.observationResultStatus,
+        effectiveDateOfReferenceRange = this.effectiveDateOfReferenceRange,
+        userDefinedAccessChecks = this.userDefinedAccessChecks,
+        dateTimeOfTheObservation = this.dateTimeOfTheObservation,
+        producersID = this.producersID,
+        responsibleObserver = this.responsibleObserver,
+        observationMethod = this.observationMethod,
+        equipmentInstanceIdentifier = this.equipmentInstanceIdentifier,
+        dateTimeOfTheAnalysis = this.dateTimeOfTheAnalysis
+    )
+}
+
+fun OBXSegment.mapToEntity(mshId: Long): OBXSegmentEntity {
+
+    return OBXSegmentEntity(
+        setId = this.setId,
+        mshId = mshId,
         valueType = this.valueType,
         observationIdentifier = this.observationIdentifier,
         observationSubID = this.observationSubID,

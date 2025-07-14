@@ -4,9 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-/**
-Not currently in use, MSH, NTE, OBX and PID segments are not saved to database, only the status of if OBX is read or not
- **/
+
 @Entity(tableName = "msh_segments")
 data class MSHSegmentEntity(
 
@@ -101,6 +99,31 @@ data class MSHSegmentEntity(
 )
 
 fun MSHSegmentEntity.mapToDomain() = MSHSegment(
+    fieldSeparator = fieldSeparator,
+    encodingCharacters = encodingCharacters,
+    sendingApplication = sendingApplication,
+    sendingFacility = sendingFacility,
+    receivingApplication = receivingApplication,
+    receivingFacility = receivingFacility,
+    dateTimeOfMessage = dateTimeOfMessage,
+    security = security,
+    messageType = messageType,
+    messageControlID = messageControlID,
+    processingID = processingID,
+    versionID = versionID,
+    sequenceNumber = sequenceNumber,
+    continuationPointer = continuationPointer,
+    acceptAcknowledgmentType = acceptAcknowledgmentType,
+    applicationAcknowledgmentType = applicationAcknowledgmentType,
+    countryCode = countryCode,
+    characterSet = characterSet,
+    principalLanguageOfMessage = principalLanguageOfMessage,
+    alternateCharacterSetHandlingScheme = alternateCharacterSetHandlingScheme,
+    messageProfileIdentifier = messageProfileIdentifier
+)
+
+// TODO is this the correct place?
+fun MSHSegment.mapToEntity() = MSHSegmentEntity(
     fieldSeparator = fieldSeparator,
     encodingCharacters = encodingCharacters,
     sendingApplication = sendingApplication,

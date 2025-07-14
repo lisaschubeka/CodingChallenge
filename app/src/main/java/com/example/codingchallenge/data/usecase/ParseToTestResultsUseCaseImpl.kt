@@ -13,13 +13,13 @@ class ParseToTestResultsUseCaseImpl @Inject constructor() : ParseToTestResultsUs
     ): List<TestResult> {
         return obxSegments.map { obxSegment ->
 
-            val id = obxSegment.setID ?: -1L // TODO check if -1 is ever fulfilled
+            val id = obxSegment.setId // TODO check if -1 is ever fulfilled
             val testName = obxSegment.observationIdentifier?.split("^")?.get(1) ?: ""
             val value = obxSegment.observationValue ?: ""
             val unit = obxSegment.units ?: ""
             val range = obxSegment.referencesRange ?: ""
 
-            val note = nteMap[obxSegment.setID]
+            val note = nteMap[obxSegment.setId]
                 ?.mapNotNull { it.comment?.trim() }
                 ?.joinToString(separator = " ") ?: ""
 

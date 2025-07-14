@@ -5,9 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-/**
-Not currently in use, MSH, NTE, OBX and PID segments are not saved to database, only the status of if OBX is read or not
- **/
 @Entity(
     tableName = "pid_segments",
     foreignKeys = [ForeignKey(
@@ -18,16 +15,13 @@ Not currently in use, MSH, NTE, OBX and PID segments are not saved to database, 
     )]
 )
 data class PIDSegmentEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey
+    @ColumnInfo(name = "set_id")
+    val setId: Long,
 
     // Foreign key reference
     @ColumnInfo(name = "msh_id", index = true)
     val mshId: Long,
-
-    // PID.1 - Set ID – PID (SI) - Optional, but common for multiple PID segments
-    @ColumnInfo(name = "set_id_pid")
-    val setIdPid: String?,
 
     // PID.2 - Patient ID (external ID) (CX) - Optional
     @ColumnInfo(name = "patient_id_external")
@@ -177,10 +171,10 @@ data class PIDSegmentEntity(
     val productionClassCode: String?,
 )
 
-fun PIDSegmentEntity.toDomain(): PIDSegment {
+fun PIDSegmentEntity.mapToDomain(): PIDSegment {
 
     return PIDSegment(
-        setID = this.setIdPid,
+        setId = this.setId,
         patientID = this.patientIdExternal,
         patientIdentifierList = this.patientIdInternal,
         alternatePatientID = this.alternatePatientId,
@@ -199,6 +193,50 @@ fun PIDSegmentEntity.toDomain(): PIDSegment {
         religion = this.religion,
         patientAccountNumber = this.patientAccountNumber,
         ssnNumberPatient = this.ssnPatient,
+        driversLicenseNumberPatient = this.driversLicenseNumberPatient,
+        mothersIdentifier = this.mothersIdentifier,
+        ethnicGroup = this.ethnicGroup,
+        birthPlace = this.birthPlace,
+        multipleBirthIndicator = this.multipleBirthIndicator,
+        birthOrder = this.birthOrder,
+        citizenship = this.citizenship,
+        veteransMilitaryStatus = this.veteransMilitaryStatus,
+        nationality = this.nationality,
+        patientDeathDateTime = this.patientDeathDateTime,
+        patientDeathIndicator = this.patientDeathIndicator,
+        identityUnknownIndicator = this.identityUnknownIndicator,
+        identityReliabilityCode = this.identityReliabilityCode,
+        lastUpdateDateTime = this.lastUpdateDateTime,
+        lastUpdateFacility = this.lastUpdateFacility,
+        speciesCode = this.speciesCode,
+        breedCode = this.breedCode,
+        strain = this.strain,
+        productionClassCode = this.productionClassCode
+    )
+}
+
+fun PIDSegment.mapToEntity(mshId: Long): PIDSegmentEntity {
+    return PIDSegmentEntity(
+        setId = this.setId,
+        mshId = mshId,
+        patientIdExternal = this.patientID,
+        patientIdInternal = this.patientIdentifierList,
+        alternatePatientId = this.alternatePatientID,
+        patientName = this.patientName,
+        mothersMaidenName = this.mothersMaidenName,
+        dateOfBirth = this.dateTimeOfBirth,
+        administrativeSex = this.administrativeSex,
+        patientAlias = this.patientAlias,
+        race = this.race,
+        patientAddress = this.patientAddress,
+        countyCode = this.countyCode,
+        phoneNumberHome = this.phoneNumberHome,
+        phoneNumberBusiness = this.phoneNumberBusiness,
+        primaryLanguage = this.primaryLanguage,
+        maritalStatus = this.maritalStatus,
+        religion = this.religion,
+        patientAccountNumber = this.patientAccountNumber,
+        ssnPatient = this.ssnNumberPatient,
         driversLicenseNumberPatient = this.driversLicenseNumberPatient,
         mothersIdentifier = this.mothersIdentifier,
         ethnicGroup = this.ethnicGroup,

@@ -2,7 +2,7 @@ package com.example.codingchallenge.domain.model.hl7Segment
 
 data class OBXSegment(
     // OBX.1 - Set ID - OBX (SI)
-    val setID: Long?,
+    val setId: Long,
 
     // OBX.2 - Value Type (ID)
     val valueType: String?,

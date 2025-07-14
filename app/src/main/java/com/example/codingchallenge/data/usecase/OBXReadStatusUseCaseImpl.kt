@@ -1,12 +1,12 @@
 package com.example.codingchallenge.data.usecase
 
-import com.example.codingchallenge.domain.repository.OBXReadStatusRepository
+import com.example.codingchallenge.domain.repository.HL7Repository
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class OBXReadStatusUseCaseImpl @Inject constructor(
-    private val repository: OBXReadStatusRepository
+    private val repository: HL7Repository
 ) : OBXReadStatusUseCase {
     override suspend fun markObxAsRead(obxId: Long, isRead: Boolean) {
         repository.markObxAsRead(obxId, isRead)

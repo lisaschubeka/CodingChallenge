@@ -5,9 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-/**
-Not currently in use, MSH, NTE, OBX and PID segments are not saved to database, only the status of if OBX is read or not
- **/
 @Entity(
     tableName = "nte_segments",
     foreignKeys = [ForeignKey(
@@ -18,15 +15,13 @@ Not currently in use, MSH, NTE, OBX and PID segments are not saved to database, 
     )]
 )
 data class NTESegmentEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
 
     @ColumnInfo(name = "obx_id", index = true)
-    val hl7MessageId: Long,
+    val obxId: Long,
 
-    // NTE.1 - Set ID - NTE (SI)
-    @ColumnInfo(name = "set_id_nte")
-    val setID: String?,
+    @ColumnInfo(name = "set_id")
+    @PrimaryKey
+    val setId: Long,
 
     // NTE.2 - Source of Comment (ID)
     @ColumnInfo(name = "source_of_comment")
@@ -44,9 +39,19 @@ data class NTESegmentEntity(
 
 fun NTESegmentEntity.mapToDomain(): NTESegment {
     return NTESegment(
-        setID = this.setID,
+        setId = this.setId,
         sourceOfComment = this.sourceOfComment,
         comment = this.comment,
         commentType = this.commentType
+    )
+}
+
+fun NTESegment.mapToEntity(obxId: Long): NTESegmentEntity {
+    return NTESegmentEntity(
+        setId = this.setId,
+        obxId = obxId,
+        sourceOfComment = this.sourceOfComment,
+        comment = this.comment,
+        commentType = this.commentType,
     )
 }

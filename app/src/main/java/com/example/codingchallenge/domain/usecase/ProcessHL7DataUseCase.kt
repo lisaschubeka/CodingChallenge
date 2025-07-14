@@ -17,4 +17,7 @@ interface ProcessHL7DataUseCase {
     ): List<TestResult>
 
     fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User
+
+    suspend fun save(hl7data: HL7Data)
+    suspend fun retrieve(): HL7Data
 }

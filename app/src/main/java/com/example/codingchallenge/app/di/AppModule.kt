@@ -1,12 +1,12 @@
 package com.example.codingchallenge.app.di
 
-import com.example.codingchallenge.data.repository.OBXReadStatusRepositoryImpl
+import com.example.codingchallenge.data.repository.HL7RepositoryImpl
 import com.example.codingchallenge.data.usecase.CreateSegmentUseCaseImpl
 import com.example.codingchallenge.data.usecase.OBXReadStatusUseCaseImpl
 import com.example.codingchallenge.data.usecase.ParseToTestResultsUseCaseImpl
 import com.example.codingchallenge.data.usecase.ParseToUserUseCaseImpl
 import com.example.codingchallenge.data.usecase.ProcessHL7DataUseCaseImpl
-import com.example.codingchallenge.domain.repository.OBXReadStatusRepository
+import com.example.codingchallenge.domain.repository.HL7Repository
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import com.example.codingchallenge.domain.usecase.ParseToTestResultsUseCase
@@ -48,6 +48,6 @@ abstract class hl7Module {
 
     @Binds
     abstract fun bindOBXReadStatusRepository(
-        impl: OBXReadStatusRepositoryImpl
-    ): OBXReadStatusRepository
+        impl: HL7RepositoryImpl
+    ): HL7Repository
 }

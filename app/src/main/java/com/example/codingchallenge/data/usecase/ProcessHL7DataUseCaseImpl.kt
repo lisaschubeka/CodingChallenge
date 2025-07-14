@@ -9,6 +9,7 @@ import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
+import com.example.codingchallenge.domain.repository.HL7Repository
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
 import com.example.codingchallenge.domain.usecase.ParseToTestResultsUseCase
 import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
@@ -18,7 +19,8 @@ import javax.inject.Inject
 class ProcessHL7DataUseCaseImpl @Inject constructor(
     private val segmentCreator: CreateSegmentUseCase,
     private val parseToUserUseCase: ParseToUserUseCase,
-    private val parseToTestResultsUseCase: ParseToTestResultsUseCase
+    private val parseToTestResultsUseCase: ParseToTestResultsUseCase,
+    private val hL7Repository: HL7Repository
 ) : ProcessHL7DataUseCase {
 
     private val TAG = "Hl7Parser"
@@ -77,8 +79,19 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
             }
 
         }
+        if (mshSegment == null || pidSegment == null) {
+            return null
+        }
+        val hl7Data = HL7Data(mshSegment, pidSegment, obxList, obxToNteMap)
+        return hl7Data
+    }
 
-        return HL7Data(mshSegment, pidSegment, obxList, obxToNteMap)
+    override suspend fun save(hl7data: HL7Data) {
+        hL7Repository.saveHL7FileData(hl7data)
+    }
+
+    override suspend fun retrieve(): HL7Data {
+        return hL7Repository.retrieveHL7FileData()
     }
 
     override fun mapToTestResult(

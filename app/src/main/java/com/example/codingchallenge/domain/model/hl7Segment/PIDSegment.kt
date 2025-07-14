@@ -2,7 +2,7 @@ package com.example.codingchallenge.domain.model.hl7Segment
 
 data class PIDSegment(
     // PID.1 - Set ID - PID (SI)
-    val setID: String?,
+    val setId: Long,
 
     // PID.2 - Patient ID (CX) - Backward Compatible
     val patientID: String?,

@@ -2,6 +2,7 @@ package com.example.codingchallenge.app.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.codingchallenge.domain.model.HL7Data
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
@@ -10,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -32,11 +34,19 @@ class HL7ViewModel @Inject constructor(
     val uiState: StateFlow<HL7UiState> = flow {
         emit(HL7UiState(isLoading = true))
 
+        // TODO database saving and retrieving
         val hl7parsed = processHL7DataUseCase.parseToHL7Data()
+        val retrievedData: HL7Data? = if (hl7parsed != null) {
 
-        if (hl7parsed != null) {
-            obxReadStatusUseCase.addObxIdsAsUnread(hl7parsed.obxSegmentList.mapNotNull {
-                it.setID
+            processHL7DataUseCase.save(hl7parsed)
+            processHL7DataUseCase.retrieve()
+        } else {
+            null
+        }
+
+        if (retrievedData != null) {
+            obxReadStatusUseCase.addObxIdsAsUnread(retrievedData.obxSegmentList.map {
+                it.setId
             })
         }
 
@@ -59,11 +69,17 @@ class HL7ViewModel @Inject constructor(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Lazily,
         initialValue = HL7UiState()
     )
 
     val unreadObxCount: Flow<Int> = obxReadStatusUseCase.getAmountObxNotRead()
+
+    fun loadFromFileAndSaveToDatabase() {
+        viewModelScope.launch {
+            uiState.collect()
+        }
+    }
 
     fun markTestResultAsRead(id: Long) {
         viewModelScope.launch {

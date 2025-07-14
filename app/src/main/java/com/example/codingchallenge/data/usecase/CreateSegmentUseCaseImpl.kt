@@ -36,7 +36,7 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
 
     override fun createPIDSegment(stringSegment: List<String>): PIDSegment {
         return PIDSegment(
-            setID = stringSegment.getOrNull(0),                     // PID.1
+            setId = stringSegment[0].toLong(),                            // PID.1
             patientID = stringSegment.getOrNull(1),                 // PID.2
             patientIdentifierList = stringSegment.getOrNull(2),     // PID.3
             alternatePatientID = stringSegment.getOrNull(3),        // PID.4
@@ -79,7 +79,7 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
 
     override fun createOBXSegment(stringSegment: List<String>): OBXSegment {
         return OBXSegment(
-            setID = stringSegment.getOrNull(0)?.toLong(),                     // OBX.1
+            setId = stringSegment[0].toLong(),                     // OBX.1
             valueType = stringSegment.getOrNull(1),                 // OBX.2
             observationIdentifier = stringSegment.getOrNull(2),     // OBX.3
             observationSubID = stringSegment.getOrNull(3),          // OBX.4
@@ -103,7 +103,7 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
 
     override fun createNTESegment(stringSegment: List<String>): NTESegment {
         return NTESegment(
-            setID = stringSegment.getOrNull(0),          // NTE.1
+            setId = stringSegment[0].toLong(),          // NTE.1
             sourceOfComment = stringSegment.getOrNull(1), // NTE.2
             comment = stringSegment.getOrNull(2),        // NTE.3
             commentType = stringSegment.getOrNull(3)     // NTE.4
