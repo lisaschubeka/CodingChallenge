@@ -2,8 +2,6 @@ package com.example.codingchallenge.app.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.withTransaction
-import com.example.codingchallenge.app.AppDatabase
 import com.example.codingchallenge.domain.model.HL7Data
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
@@ -25,8 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HL7ViewModel @Inject constructor(
     private val processHL7DataUseCase: ProcessHL7DataUseCase,
-    private val obxReadStatusUseCase: OBXReadStatusUseCase,
-    private val database: AppDatabase
+    private val obxReadStatusUseCase: OBXReadStatusUseCase
 ) : ViewModel() {
 
     data class HL7UiState(
@@ -36,7 +33,7 @@ class HL7ViewModel @Inject constructor(
     )
 
     private val _retrievedHL7Data = MutableStateFlow<HL7Data?>(null)
-    val retrievedHL7Data: StateFlow<HL7Data?> = _retrievedHL7Data.asStateFlow()
+    private val retrievedHL7Data: StateFlow<HL7Data?> = _retrievedHL7Data.asStateFlow()
 
     val uiState: StateFlow<HL7UiState> = retrievedHL7Data
         .map { data ->
@@ -67,13 +64,12 @@ class HL7ViewModel @Inject constructor(
 
     fun loadFromFileAndSaveToDatabase() {
         viewModelScope.launch {
-            val hl7parsed = processHL7DataUseCase.parseToHL7Data()
+            val hl7parsed = processHL7DataUseCase.parseToHL7DataObject()
             processHL7DataUseCase.clearDatabaseData()
             if (hl7parsed != null) {
-                val dataFromDb = database.withTransaction {
-                    processHL7DataUseCase.save(hl7parsed)
-                    processHL7DataUseCase.retrieve()
-                }
+                processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
+                val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
+
 
                 _retrievedHL7Data.value = dataFromDb
 
@@ -86,7 +82,7 @@ class HL7ViewModel @Inject constructor(
     private fun loadFromDatabase() {
         viewModelScope.launch {
             try {
-                _retrievedHL7Data.value = processHL7DataUseCase.retrieve()
+                _retrievedHL7Data.value = processHL7DataUseCase.retrieveHL7DataFromDatabase()
             } catch (e: Exception) {
                 _retrievedHL7Data.value = null
             }

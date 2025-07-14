@@ -10,7 +10,7 @@ import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 
 // Top level Usecase used by HL7ViewModel
 interface ProcessHL7DataUseCase {
-    fun parseToHL7Data(): HL7Data?
+    fun parseToHL7DataObject(): HL7Data?
     fun mapToTestResult(
         obxSegments: List<OBXSegment>,
         nteMap: Map<Long, List<NTESegment>>
@@ -18,7 +18,7 @@ interface ProcessHL7DataUseCase {
 
     fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User
 
-    suspend fun save(hl7data: HL7Data)
-    suspend fun retrieve(): HL7Data
+    suspend fun saveHL7DataToDatabase(hl7data: HL7Data)
+    suspend fun retrieveHL7DataFromDatabase(): HL7Data
     suspend fun clearDatabaseData()
 }

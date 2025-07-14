@@ -26,7 +26,7 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
     private val TAG = "Hl7Parser"
     private var fieldDelimiter: Char = '|'
 
-    override fun parseToHL7Data(): HL7Data? {
+    override fun parseToHL7DataObject(): HL7Data? {
         var mshSegment: MSHSegment? = null
         var pidSegment: PIDSegment? = null
         val obxList = mutableListOf<OBXSegment>()
@@ -88,12 +88,16 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
         return hl7Data
     }
 
-    override suspend fun save(hl7data: HL7Data) {
+    override suspend fun saveHL7DataToDatabase(hl7data: HL7Data) {
         hL7Repository.saveHL7FileData(hl7data)
     }
 
-    override suspend fun retrieve(): HL7Data {
+    override suspend fun retrieveHL7DataFromDatabase(): HL7Data {
         return hL7Repository.retrieveHL7FileData()
+    }
+
+    override suspend fun clearDatabaseData() {
+        hL7Repository.clearDatabase()
     }
 
     override fun mapToTestResult(
@@ -105,9 +109,5 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
 
     override fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {
         return parseToUserUseCase.parseToUser(pidSegment, mshSegment)
-    }
-
-    override suspend fun clearDatabaseData() {
-        hL7Repository.clearDatabase()
     }
 }
