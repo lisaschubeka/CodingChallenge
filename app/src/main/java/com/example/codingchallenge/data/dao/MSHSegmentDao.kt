@@ -15,4 +15,7 @@ interface MSHSegmentDao {
 
     @Query("SELECT * FROM msh_segments ORDER BY id DESC LIMIT 1")
     suspend fun getMshSegment(): MSHSegmentEntity?
+
+    @Query("DELETE FROM msh_segments")
+    suspend fun deleteAll(): Int
 }

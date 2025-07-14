@@ -60,6 +60,8 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
                 if (!obxSegment.referencesRange.isNullOrBlank() && obxSegment.observationValue != "!!Storno") {
                     obxSegment.referencesRange.let { Log.w(TAG, it) }
                     obxList.add(obxSegment)
+                } else {
+                    obxNr = -1
                 }
             }
             // if obxNr is -1, then it is unclear where the NTE segment belongs to and
@@ -103,5 +105,9 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
 
     override fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {
         return parseToUserUseCase.parseToUser(pidSegment, mshSegment)
+    }
+
+    override suspend fun clearDatabaseData() {
+        hL7Repository.clearDatabase()
     }
 }

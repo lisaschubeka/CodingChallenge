@@ -12,4 +12,5 @@ interface HL7Repository {
     fun observeAmountObxNotRead(): Flow<Int>
     suspend fun saveHL7FileData(hl7Data: HL7Data)
     suspend fun retrieveHL7FileData(): HL7Data
+    suspend fun clearDatabase()
 }

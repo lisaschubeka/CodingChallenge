@@ -25,4 +25,7 @@ interface OBXReadStatusDao {
 
     @Query("SELECT COUNT(*) FROM obx_read_status WHERE is_read = 0")
     fun observeAmountObxNotRead(): Flow<Int>
+
+    @Query("DELETE FROM obx_read_status")
+    suspend fun deleteAll(): Int
 }

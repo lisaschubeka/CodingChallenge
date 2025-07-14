@@ -20,4 +20,5 @@ interface ProcessHL7DataUseCase {
 
     suspend fun save(hl7data: HL7Data)
     suspend fun retrieve(): HL7Data
+    suspend fun clearDatabaseData()
 }

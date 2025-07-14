@@ -16,7 +16,7 @@ import androidx.room.PrimaryKey
 )
 data class NTESegmentEntity(
 
-    @ColumnInfo(name = "obx_id", index = true)
+    @ColumnInfo(name = "obx_id")
     val obxId: Long,
 
     @ColumnInfo(name = "set_id")
