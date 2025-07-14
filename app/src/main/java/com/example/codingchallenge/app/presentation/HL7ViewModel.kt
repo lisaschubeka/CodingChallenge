@@ -2,6 +2,8 @@ package com.example.codingchallenge.app.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.withTransaction
+import com.example.codingchallenge.app.AppDatabase
 import com.example.codingchallenge.domain.model.HL7Data
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
@@ -22,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HL7ViewModel @Inject constructor(
     private val processHL7DataUseCase: ProcessHL7DataUseCase,
-    private val obxReadStatusUseCase: OBXReadStatusUseCase
+    private val obxReadStatusUseCase: OBXReadStatusUseCase,
+    private val database: AppDatabase
 ) : ViewModel() {
 
     data class HL7UiState(
@@ -37,9 +40,11 @@ class HL7ViewModel @Inject constructor(
         // TODO database saving and retrieving
         val hl7parsed = processHL7DataUseCase.parseToHL7Data()
         val retrievedData: HL7Data? = if (hl7parsed != null) {
+            database.withTransaction {
 
-            processHL7DataUseCase.save(hl7parsed)
-            processHL7DataUseCase.retrieve()
+                processHL7DataUseCase.save(hl7parsed)
+                processHL7DataUseCase.retrieve()
+            }
         } else {
             null
         }
@@ -50,13 +55,13 @@ class HL7ViewModel @Inject constructor(
             })
         }
 
-        val currentUser = if (hl7parsed != null) {
-            processHL7DataUseCase.mapToUser(hl7parsed.pid, hl7parsed.msh)
+        val currentUser = if (retrievedData != null) {
+            processHL7DataUseCase.mapToUser(retrievedData.pid, retrievedData.msh)
         } else {
             User("", "", "")
         }
 
-        val currentTestResults = hl7parsed?.let {
+        val currentTestResults = retrievedData?.let {
             processHL7DataUseCase.mapToTestResult(it.obxSegmentList, it.nteMap)
         } ?: emptyList()
 

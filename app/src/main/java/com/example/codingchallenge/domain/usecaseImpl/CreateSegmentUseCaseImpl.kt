@@ -1,4 +1,4 @@
-package com.example.codingchallenge.data.usecase
+package com.example.codingchallenge.domain.usecaseImpl
 
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment

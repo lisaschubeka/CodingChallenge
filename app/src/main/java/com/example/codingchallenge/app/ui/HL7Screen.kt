@@ -19,6 +19,7 @@ import com.example.codingchallenge.app.presentation.HL7ViewModel
 fun HL7Screen(viewModel: HL7ViewModel) {
 
     val uiState by viewModel.uiState.collectAsState()
+
     val unreadCount by viewModel.unreadObxCount.collectAsState(initial = 0)
 
     Column {

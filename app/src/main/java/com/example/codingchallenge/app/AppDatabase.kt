@@ -2,6 +2,7 @@ package com.example.codingchallenge.app
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.withTransaction
 import com.example.codingchallenge.data.dao.MSHSegmentDao
 import com.example.codingchallenge.data.dao.NTESegmentDao
 import com.example.codingchallenge.data.dao.OBXReadStatusDao
@@ -31,4 +32,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun obxSegmentDao(): OBXSegmentDao
     abstract fun nteSegmentDao(): NTESegmentDao
     abstract fun obxReadStatusDao(): OBXReadStatusDao
+
+    suspend fun <R> runInTransaction(block: suspend () -> R): R {
+        return withTransaction(block)
+    }
 }

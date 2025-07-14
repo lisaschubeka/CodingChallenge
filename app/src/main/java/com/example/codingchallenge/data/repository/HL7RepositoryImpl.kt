@@ -1,7 +1,7 @@
 // data/repository/HL7MessageRepositoryImpl.kt
 package com.example.codingchallenge.data.repository
 
-import android.util.Log
+import androidx.room.Transaction
 import com.example.codingchallenge.app.AppDatabase
 import com.example.codingchallenge.data.model.ObxReadStatusEntity
 import com.example.codingchallenge.domain.model.HL7Data
@@ -51,28 +51,26 @@ class HL7RepositoryImpl @Inject constructor(
         return obxReadStatusDao.observeAmountObxNotRead()
     }
 
+    @Transaction
     override suspend fun saveHL7FileData(hl7Data: HL7Data) {
         val mshId = mshSegmentDao.insertMSHSegmentEntity(hl7Data.msh.mapToEntity())
 
         val pidSegmentEntity = hl7Data.pid.mapToEntity(mshId)
         pidSegmentDao.insertPIDSegmentEntity(pidSegmentEntity)
-        Log.w("SAVEING HL7", hl7Data.obxSegmentList.toString())
 
         obxSegmentDao.insertAllObxSegments(hl7Data.obxSegmentList.map { obxSegment ->
             obxSegment.mapToEntity(
                 mshId
             )
         })
-        Log.w("SAVEING HL7", hl7Data.obxSegmentList.toString())
         val nteEntitiesToInsert: List<NTESegmentEntity> =
             hl7Data.nteMap.flatMap { (obxIdFromMap, nteSegmentsForObx) ->
                 nteSegmentsForObx.map { nteSegment ->
                     nteSegment.mapToEntity(obxIdFromMap)
                 }
             }
-        Log.w("SAVEING HL7", nteEntitiesToInsert.toString())
 
-        nteSegmentDao.insertAllNteSegments(nteEntitiesToInsert)
+//        nteSegmentDao.insertAllNteSegments(nteEntitiesToInsert)
     }
 
     override suspend fun retrieveHL7FileData(): HL7Data {

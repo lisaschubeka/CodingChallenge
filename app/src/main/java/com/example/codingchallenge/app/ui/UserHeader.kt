@@ -33,6 +33,7 @@ import com.example.codingchallenge.domain.model.User
 
 @Composable
 fun UserHeader(user: User?, viewModel: HL7ViewModel) {
+
     user?.let {
         Column(
             modifier = Modifier

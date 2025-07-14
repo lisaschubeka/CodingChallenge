@@ -1,4 +1,4 @@
-package com.example.codingchallenge.data.usecase
+package com.example.codingchallenge.domain.usecaseImpl
 
 import android.util.Log
 import com.example.codingchallenge.data.HL7_FILE

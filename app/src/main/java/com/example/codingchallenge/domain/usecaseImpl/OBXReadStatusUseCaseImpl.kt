@@ -1,4 +1,4 @@
-package com.example.codingchallenge.data.usecase
+package com.example.codingchallenge.domain.usecaseImpl
 
 import com.example.codingchallenge.domain.repository.HL7Repository
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase

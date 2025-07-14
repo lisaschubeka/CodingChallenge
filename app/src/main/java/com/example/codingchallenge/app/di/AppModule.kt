@@ -1,17 +1,17 @@
 package com.example.codingchallenge.app.di
 
 import com.example.codingchallenge.data.repository.HL7RepositoryImpl
-import com.example.codingchallenge.data.usecase.CreateSegmentUseCaseImpl
-import com.example.codingchallenge.data.usecase.OBXReadStatusUseCaseImpl
-import com.example.codingchallenge.data.usecase.ParseToTestResultsUseCaseImpl
-import com.example.codingchallenge.data.usecase.ParseToUserUseCaseImpl
-import com.example.codingchallenge.data.usecase.ProcessHL7DataUseCaseImpl
 import com.example.codingchallenge.domain.repository.HL7Repository
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import com.example.codingchallenge.domain.usecase.ParseToTestResultsUseCase
 import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
+import com.example.codingchallenge.domain.usecaseImpl.CreateSegmentUseCaseImpl
+import com.example.codingchallenge.domain.usecaseImpl.OBXReadStatusUseCaseImpl
+import com.example.codingchallenge.domain.usecaseImpl.ParseToTestResultsUseCaseImpl
+import com.example.codingchallenge.domain.usecaseImpl.ParseToUserUseCaseImpl
+import com.example.codingchallenge.domain.usecaseImpl.ProcessHL7DataUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
