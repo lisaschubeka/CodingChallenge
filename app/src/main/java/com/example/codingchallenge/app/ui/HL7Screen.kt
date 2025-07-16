@@ -23,7 +23,7 @@ fun HL7Screen(viewModel: HL7ViewModel) {
     Column {
         UserHeader(
             uiState.user,
-            viewModel::loadFromFileAndSaveToDatabase,
+            viewModel::loadFromFileAndSaveAndLoadFromDatabase,
             viewModel::formatBirthday
         )
 

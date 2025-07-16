@@ -2,7 +2,6 @@ package com.example.codingchallenge.app.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.codingchallenge.domain.model.HL7Data
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
@@ -42,10 +41,11 @@ class HL7ViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
-                updateCurrentUserWithHL7data(dataFromDb)
+                val user = processHL7DataUseCase.mapToUser(dataFromDb.pid, dataFromDb.msh)
                 val flowTestResults = processHL7DataUseCase.observeTestResults()
                 flowTestResults.collectLatest { listTestResults ->
-                    updateTestResultsFromFlow(listTestResults)
+                    // The user variable below will not change even if value in database changes
+                    updateUiState(user, listTestResults)
                 }
             } catch (e: Exception) {
 
@@ -54,7 +54,7 @@ class HL7ViewModel @Inject constructor(
         }
     }
 
-    fun loadFromFileAndSaveToDatabase() {
+    fun loadFromFileAndSaveAndLoadFromDatabase() {
         viewModelScope.launch {
             processHL7DataUseCase.clearDatabaseData()
             val hl7parsed = processHL7DataUseCase.parseToHL7DataObject()
@@ -70,28 +70,13 @@ class HL7ViewModel @Inject constructor(
         }
     }
 
-    private fun updateCurrentUserWithHL7data(
-        data: HL7Data
-    ) {
-        _uiState.update {
-            run {
-                val currentUser = processHL7DataUseCase.mapToUser(data.pid, data.msh)
-                HL7UiState(
-                    isLoading = false,
-                    user = currentUser,
-                    testResults = uiState.value.testResults
-                )
-            }
-        }
-    }
-
-    private fun updateTestResultsFromFlow(listTestResult: List<TestResult>) {
+    private fun updateUiState(user: User, listTestResult: List<TestResult>) {
         _uiState.update {
             run {
                 HL7UiState(
                     isLoading = false,
                     testResults = listTestResult,
-                    user = uiState.value.user
+                    user = user
                 )
             }
         }
