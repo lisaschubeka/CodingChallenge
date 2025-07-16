@@ -6,5 +6,6 @@ data class TestResult(
     val value: String,
     val unit: String,
     val range: String?,
-    val note: String?
+    val note: String?,
+    val isRead: Boolean
 )

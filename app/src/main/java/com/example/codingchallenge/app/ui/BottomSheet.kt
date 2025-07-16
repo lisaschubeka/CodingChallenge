@@ -38,7 +38,6 @@ fun BottomSheet(
         Text(name, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
 
-        // TODO is this the right choice of component here?
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardColors(

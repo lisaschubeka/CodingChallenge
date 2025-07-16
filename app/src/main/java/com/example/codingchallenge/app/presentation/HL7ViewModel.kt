@@ -8,17 +8,16 @@ import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
+
 
 @HiltViewModel
 class HL7ViewModel @Inject constructor(
@@ -29,64 +28,71 @@ class HL7ViewModel @Inject constructor(
     data class HL7UiState(
         val isLoading: Boolean = true,
         val user: User = User("", "", ""),
-        val testResults: List<TestResult> = emptyList()
+        val testResults: List<TestResult> = emptyList(),
     )
 
-    private val _retrievedHL7Data = MutableStateFlow<HL7Data?>(null)
-    private val retrievedHL7Data: StateFlow<HL7Data?> = _retrievedHL7Data.asStateFlow()
-
-    val uiState: StateFlow<HL7UiState> = retrievedHL7Data
-        .map { data ->
-            if (data == null) {
-                HL7UiState(isLoading = true)
-            } else {
-                val currentUser = processHL7DataUseCase.mapToUser(data.pid, data.msh)
-                val currentTestResults =
-                    processHL7DataUseCase.mapToTestResult(data.obxSegmentList, data.nteMap)
-                HL7UiState(
-                    isLoading = false,
-                    user = currentUser,
-                    testResults = currentTestResults
-                )
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = HL7UiState(isLoading = true)
-        )
-
-    val unreadObxCount: Flow<Int> = obxReadStatusUseCase.getAmountObxNotRead()
+    private val _uiState: MutableStateFlow<HL7UiState> = MutableStateFlow(HL7UiState())
+    val uiState: StateFlow<HL7UiState> = _uiState.asStateFlow()
 
     init {
         loadFromDatabase()
     }
 
+    fun loadFromDatabase() {
+        viewModelScope.launch {
+            try {
+                val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
+                updateCurrentUserWithHL7data(dataFromDb)
+                val flowTestResults = processHL7DataUseCase.observeTestResults()
+                flowTestResults.collectLatest { listTestResults ->
+                    updateTestResultsFromFlow(listTestResults)
+                }
+            } catch (e: Exception) {
+
+            }
+
+        }
+    }
+
     fun loadFromFileAndSaveToDatabase() {
         viewModelScope.launch {
-            val hl7parsed = processHL7DataUseCase.parseToHL7DataObject()
             processHL7DataUseCase.clearDatabaseData()
+            val hl7parsed = processHL7DataUseCase.parseToHL7DataObject()
             if (hl7parsed != null) {
                 processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
+                // This retrieval step is technically unnecessary, but it ensures we are only
+                // displaying data that is actually in the database and not just from the parsed
+                // results in variable hl7parsed
                 val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
-
-
-                _retrievedHL7Data.value = dataFromDb
-
                 obxReadStatusUseCase.addObxIdsAsUnread(dataFromDb.obxSegmentList.map { it.setId })
-
             }
         }
     }
 
-    private fun loadFromDatabase() {
-        viewModelScope.launch {
-            try {
-                _retrievedHL7Data.value = processHL7DataUseCase.retrieveHL7DataFromDatabase()
-            } catch (e: Exception) {
-                _retrievedHL7Data.value = null
+    private fun updateCurrentUserWithHL7data(
+        data: HL7Data
+    ) {
+        _uiState.update {
+            run {
+                val currentUser = processHL7DataUseCase.mapToUser(data.pid, data.msh)
+                HL7UiState(
+                    isLoading = false,
+                    user = currentUser,
+                    testResults = uiState.value.testResults
+                )
             }
+        }
+    }
 
+    private fun updateTestResultsFromFlow(listTestResult: List<TestResult>) {
+        _uiState.update {
+            run {
+                HL7UiState(
+                    isLoading = false,
+                    testResults = listTestResult,
+                    user = uiState.value.user
+                )
+            }
         }
     }
 
@@ -94,10 +100,6 @@ class HL7ViewModel @Inject constructor(
         viewModelScope.launch {
             obxReadStatusUseCase.markObxAsRead(id, true)
         }
-    }
-
-    fun isTestResultRead(id: Long): Flow<Boolean> {
-        return obxReadStatusUseCase.observeObxReadStatus(id)
     }
 
     fun parseRange(range: String?): Pair<Float?, Float?> {

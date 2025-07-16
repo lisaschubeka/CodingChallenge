@@ -3,6 +3,7 @@ package com.example.codingchallenge.domain.usecaseImpl
 import android.util.Log
 import com.example.codingchallenge.data.HL7_FILE
 import com.example.codingchallenge.domain.model.HL7Data
+import com.example.codingchallenge.domain.model.ObxReadStatus
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
@@ -10,16 +11,17 @@ import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import com.example.codingchallenge.domain.repository.HL7Repository
+import com.example.codingchallenge.domain.usecase.CombineTestResultsUseCase
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
-import com.example.codingchallenge.domain.usecase.ParseToTestResultsUseCase
 import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class ProcessHL7DataUseCaseImpl @Inject constructor(
     private val segmentCreator: CreateSegmentUseCase,
     private val parseToUserUseCase: ParseToUserUseCase,
-    private val parseToTestResultsUseCase: ParseToTestResultsUseCase,
+    private val combineTestResultsUseCase: CombineTestResultsUseCase,
     private val hL7Repository: HL7Repository
 ) : ProcessHL7DataUseCase {
 
@@ -96,15 +98,27 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
         return hL7Repository.retrieveHL7FileData()
     }
 
+    override suspend fun observeObxSegmentsFromDatabase(): Flow<List<OBXSegment>> {
+        return hL7Repository.observeObxSegmentsFromDatabase()
+    }
+
+    override suspend fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
+        return hL7Repository.observeOBXReadStatusFromDatabase()
+    }
+
     override suspend fun clearDatabaseData() {
         hL7Repository.clearDatabase()
     }
 
-    override fun mapToTestResult(
-        obxSegments: List<OBXSegment>,
-        nteMap: Map<Long, List<NTESegment>>
-    ): List<TestResult> {
-        return parseToTestResultsUseCase.parseToTestResults(obxSegments, nteMap)
+    override suspend fun observeTestResults(): Flow<List<TestResult>> {
+        val flowObxData = observeObxSegmentsFromDatabase()
+        val flowObxReadStatus = observeOBXReadStatusFromDatabase()
+        hL7Repository.retrieveHL7FileData()
+        return combineTestResultsUseCase.combineToFlowTestResults(
+            flowObxData,
+            flowObxReadStatus,
+            hL7Repository.retrieveHL7FileData().nteMap
+        )
     }
 
     override fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {

@@ -1,6 +1,7 @@
 package com.example.codingchallenge.app.ui
 
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,7 +34,7 @@ import com.example.codingchallenge.domain.model.User
 
 @Composable
 fun UserHeader(user: User?, viewModel: HL7ViewModel) {
-
+    Log.w("(UserHeader) CURRENT USER IS: ", user.toString())
     user?.let {
         Column(
             modifier = Modifier
@@ -77,7 +78,10 @@ fun UserHeader(user: User?, viewModel: HL7ViewModel) {
                 }
 
                 Button(
-                    onClick = { viewModel.loadFromFileAndSaveToDatabase() },
+                    onClick = {
+                        viewModel.loadFromFileAndSaveToDatabase()
+                        viewModel.loadFromDatabase()
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onSecondary

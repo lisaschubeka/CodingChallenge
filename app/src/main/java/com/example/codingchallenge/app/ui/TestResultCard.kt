@@ -22,7 +22,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,21 +31,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.codingchallenge.app.presentation.HL7ViewModel
 import com.example.codingchallenge.domain.model.TestResult
 
+// TODO is it a smarter idea to pass functions of the viewmodel into the component or the entire viewmodel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TestResultCard(
-    viewModel: HL7ViewModel, testResult: TestResult
+    parseRange: (String?) -> Pair<Float?, Float?>,
+    markTestResultAsRead: (Long) -> Unit,
+    testResult: TestResult,
 ) {
-    val notRead = viewModel.isTestResultRead(testResult.id).collectAsState(initial = false)
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,
     )
 
-    val (normalMin, normalMax) = viewModel.parseRange(testResult.range)
+    val (normalMin, normalMax) = parseRange(testResult.range)
 
     val isTooLow = normalMin != null && (((testResult.value.toFloatOrNull()) ?: 0f) < normalMin)
 
@@ -64,7 +64,7 @@ fun TestResultCard(
         colors = CardColors(Color.White, Color.Black, Color.LightGray, Color.DarkGray),
         onClick = {
             showBottomSheet = true
-            viewModel.markTestResultAsRead(id = testResult.id)
+            markTestResultAsRead(testResult.id)
         }) {
         Column(
             Modifier
@@ -82,9 +82,9 @@ fun TestResultCard(
                     fontWeight = FontWeight.SemiBold
                 )
                 Icon(
-                    imageVector = if (notRead.value) Icons.Outlined.CheckCircle else Icons.Filled.Info,
-                    contentDescription = if (notRead.value) "Gelesen" else "Nicht gelesen",
-                    tint = if (notRead.value) Color.Gray else Color.Red,
+                    imageVector = if (testResult.isRead) Icons.Outlined.CheckCircle else Icons.Filled.Info,
+                    contentDescription = if (testResult.isRead) "Gelesen" else "Nicht gelesen",
+                    tint = if (testResult.isRead) Color.Gray else Color.Red,
                 )
             }
             Text("in ${testResult.unit}", style = MaterialTheme.typography.labelSmall)

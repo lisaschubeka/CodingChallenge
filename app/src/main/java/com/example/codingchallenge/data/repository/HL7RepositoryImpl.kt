@@ -3,9 +3,12 @@ package com.example.codingchallenge.data.repository
 
 import com.example.codingchallenge.app.AppDatabase
 import com.example.codingchallenge.data.model.ObxReadStatusEntity
+import com.example.codingchallenge.data.model.mapToDomain
 import com.example.codingchallenge.domain.model.HL7Data
+import com.example.codingchallenge.domain.model.ObxReadStatus
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegmentEntity
+import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.mapToDomain
 import com.example.codingchallenge.domain.model.hl7Segment.mapToEntity
 import com.example.codingchallenge.domain.repository.HL7Repository
@@ -31,6 +34,7 @@ class HL7RepositoryImpl @Inject constructor(
         obxReadStatusDao.insertObxReadStatus(status)
     }
 
+    // TODO collect a flow of list of booleans instead
     override fun observeObxReadStatus(obxId: Long): Flow<Boolean> {
         return obxReadStatusDao.getObxReadStatus(obxId)
             .map { it?.isRead ?: false }
@@ -100,6 +104,22 @@ class HL7RepositoryImpl @Inject constructor(
         mshSegmentDao.deleteAll()
 
         obxReadStatusDao.deleteAll()
+    }
+
+    override suspend fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
+        return obxReadStatusDao.observeAllObxNotRead()
+            .map { obxReadStatusList ->
+                obxReadStatusList
+                    .map { obxReadStatusEntity -> obxReadStatusEntity.mapToDomain() }
+            }
+    }
+
+    override suspend fun observeObxSegmentsFromDatabase(): Flow<List<OBXSegment>> {
+        return obxSegmentDao.observeAllObxSegments()
+            .map { obxSegmentList ->
+                obxSegmentList
+                    .map { obxSegmentEntity -> obxSegmentEntity.mapToDomain() }
+            }
     }
 
 }

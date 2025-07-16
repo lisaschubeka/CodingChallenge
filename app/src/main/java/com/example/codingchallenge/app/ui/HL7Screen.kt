@@ -20,13 +20,11 @@ fun HL7Screen(viewModel: HL7ViewModel) {
 
     val uiState by viewModel.uiState.collectAsState()
 
-    val unreadCount by viewModel.unreadObxCount.collectAsState(initial = 0)
-
     Column {
         UserHeader(uiState.user, viewModel)
 
-        if (unreadCount > 0) {
-            StatusCountDisplay(viewModel, "auffällige Befunde", "Überprüfung notwendig")
+        if (uiState.testResults.isNotEmpty()) {
+            StatusCountDisplay(uiState.testResults, "auffällige Befunde", "Überprüfung notwendig")
         }
         Column(Modifier.padding(16.dp)) {
 
@@ -40,11 +38,11 @@ fun HL7Screen(viewModel: HL7ViewModel) {
                         .padding(top = 8.dp)
                 ) {
                     items(uiState.testResults) { result ->
-
-                        result.value.toFloatOrNull()?.let { numericValue ->
-
+                        result.value.toFloatOrNull()?.let {
                             TestResultCard(
-                                viewModel = viewModel, testResult = result
+                                viewModel::parseRange,
+                                viewModel::markTestResultAsRead,
+                                testResult = result
                             )
                         }
                     }

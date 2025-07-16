@@ -12,23 +12,19 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.codingchallenge.app.presentation.HL7ViewModel
+import com.example.codingchallenge.domain.model.TestResult
 
 @Composable
 fun StatusCountDisplay(
-    viewModel: HL7ViewModel,
+    testResults: List<TestResult>,
     label: String,
     subLabel: String? = null,
 ) {
-
-    val testResults by viewModel.unreadObxCount.collectAsState(initial = 0)
 
     Row(
         modifier = Modifier.padding(horizontal = 36.dp, vertical = 16.dp),
@@ -51,7 +47,7 @@ fun StatusCountDisplay(
                 // TODO should be ${testResults.size}, there is a bug here yet to be fixed.
                 // TODO The bug is that there are (actual testResults + 1) in viewModel.notReadResults
                 Text(
-                    text = "${testResults - 1}",
+                    text = "${testResults.filter { testResult -> !testResult.isRead }.size - 1}",
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
