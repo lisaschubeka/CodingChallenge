@@ -34,7 +34,6 @@ import com.example.codingchallenge.domain.model.User
 fun UserHeader(
     user: User?,
     loadFromFileAndSaveToDatabase: () -> Unit,
-    loadFromDatabase: () -> Unit,
     formatBirthday: (dateString: String) -> String
 ) {
     Log.w("(UserHeader) CURRENT USER IS: ", user.toString())
@@ -83,7 +82,6 @@ fun UserHeader(
                 Button(
                     onClick = {
                         loadFromFileAndSaveToDatabase()
-                        loadFromDatabase()
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,

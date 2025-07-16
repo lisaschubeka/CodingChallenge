@@ -24,7 +24,6 @@ fun HL7Screen(viewModel: HL7ViewModel) {
         UserHeader(
             uiState.user,
             viewModel::loadFromFileAndSaveToDatabase,
-            viewModel::loadFromDatabase,
             viewModel::formatBirthday
         )
 

@@ -66,6 +66,7 @@ class HL7ViewModel @Inject constructor(
                 val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
                 obxReadStatusUseCase.addObxIdsAsUnread(dataFromDb.obxSegmentList.map { it.setId })
             }
+            loadFromDatabase()
         }
     }
 
