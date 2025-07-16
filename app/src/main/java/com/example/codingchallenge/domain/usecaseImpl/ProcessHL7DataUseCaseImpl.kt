@@ -1,7 +1,6 @@
 package com.example.codingchallenge.domain.usecaseImpl
 
 import android.util.Log
-import com.example.codingchallenge.data.HL7_FILE
 import com.example.codingchallenge.domain.model.HL7Data
 import com.example.codingchallenge.domain.model.ObxReadStatus
 import com.example.codingchallenge.domain.model.TestResult
@@ -28,14 +27,14 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
     private val TAG = "Hl7Parser"
     private var fieldDelimiter: Char = '|'
 
-    override fun parseToHL7DataObject(): HL7Data? {
+    override fun parseToHL7DataObject(hl7Raw: String): HL7Data? {
         var mshSegment: MSHSegment? = null
         var pidSegment: PIDSegment? = null
         val obxList = mutableListOf<OBXSegment>()
         // Map of the OBX id to the corresponding NTE note
         val obxToNteMap = mutableMapOf<Long, MutableList<NTESegment>>()
 
-        val segments = HL7_FILE.split('\r', '\n').filter { it.isNotBlank() }
+        val segments = hl7Raw.split('\r', '\n').filter { it.isNotBlank() }
         if (segments.isEmpty()) {
             Log.w(TAG, "No segments found in the HL7 message.")
             return null
