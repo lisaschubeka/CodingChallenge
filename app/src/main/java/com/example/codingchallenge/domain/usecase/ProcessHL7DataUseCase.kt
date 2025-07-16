@@ -9,8 +9,7 @@ import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import kotlinx.coroutines.flow.Flow
 
-// Top level Usecase used by HL7ViewModel
-// TODO after implementing observability clean up this code
+// Top level use case used by HL7ViewModel
 interface ProcessHL7DataUseCase {
     fun parseToHL7DataObject(): HL7Data?
     suspend fun observeTestResults(

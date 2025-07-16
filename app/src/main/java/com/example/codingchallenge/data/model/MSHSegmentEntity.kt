@@ -122,7 +122,6 @@ fun MSHSegmentEntity.mapToDomain() = MSHSegment(
     messageProfileIdentifier = messageProfileIdentifier
 )
 
-// TODO is this the correct place?
 fun MSHSegment.mapToEntity() = MSHSegmentEntity(
     fieldSeparator = fieldSeparator,
     encodingCharacters = encodingCharacters,

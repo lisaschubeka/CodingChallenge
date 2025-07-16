@@ -1,6 +1,5 @@
 package com.example.codingchallenge.app.ui
 
-
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,12 +27,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.codingchallenge.app.presentation.HL7ViewModel
 import com.example.codingchallenge.domain.model.User
 
 
 @Composable
-fun UserHeader(user: User?, viewModel: HL7ViewModel) {
+fun UserHeader(
+    user: User?,
+    loadFromFileAndSaveToDatabase: () -> Unit,
+    loadFromDatabase: () -> Unit,
+    formatBirthday: (dateString: String) -> String
+) {
     Log.w("(UserHeader) CURRENT USER IS: ", user.toString())
     user?.let {
         Column(
@@ -79,8 +82,8 @@ fun UserHeader(user: User?, viewModel: HL7ViewModel) {
 
                 Button(
                     onClick = {
-                        viewModel.loadFromFileAndSaveToDatabase()
-                        viewModel.loadFromDatabase()
+                        loadFromFileAndSaveToDatabase()
+                        loadFromDatabase()
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -104,7 +107,7 @@ fun UserHeader(user: User?, viewModel: HL7ViewModel) {
                         text = "GEBURTSDATUM", fontSize = 12.sp, color = Color.LightGray
                     )
                     Text(
-                        text = viewModel.formatBirthday(it.birthday),
+                        text = formatBirthday(it.birthday),
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )

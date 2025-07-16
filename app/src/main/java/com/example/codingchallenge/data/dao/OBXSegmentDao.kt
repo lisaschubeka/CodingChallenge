@@ -21,8 +21,6 @@ interface OBXSegmentDao {
     @Query("SELECT * FROM obx_segments")
     suspend fun getAllObxSegments(): List<OBXSegmentEntity>
 
-    // TODO get a flow of all obx segments, and make sure there are only 10 so they match the not read flow
-    // THESE WILL BE COMBINED
     @Query("SELECT * FROM obx_segments")
     fun observeAllObxSegments(): Flow<List<OBXSegmentEntity>>
 }

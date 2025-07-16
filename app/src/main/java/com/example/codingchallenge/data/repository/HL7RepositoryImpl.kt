@@ -13,8 +13,6 @@ import com.example.codingchallenge.domain.model.hl7Segment.mapToDomain
 import com.example.codingchallenge.domain.model.hl7Segment.mapToEntity
 import com.example.codingchallenge.domain.repository.HL7Repository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -34,24 +32,9 @@ class HL7RepositoryImpl @Inject constructor(
         obxReadStatusDao.insertObxReadStatus(status)
     }
 
-    // TODO collect a flow of list of booleans instead
-    override fun observeObxReadStatus(obxId: Long): Flow<Boolean> {
-        return obxReadStatusDao.getObxReadStatus(obxId)
-            .map { it?.isRead ?: false }
-            .distinctUntilChanged()
-    }
-
-    override suspend fun getObxReadStatus(obxId: Long): Boolean {
-        return obxReadStatusDao.getObxReadStatus(obxId).map { it?.isRead ?: false }.first()
-    }
-
     override suspend fun addObxIdsAsUnread(obxIds: List<Long>) {
         val unreadStatuses = obxIds.map { ObxReadStatusEntity(obxId = it, isRead = false) }
         obxReadStatusDao.insertAllObxAsUnread(unreadStatuses)
-    }
-
-    override fun observeAmountObxNotRead(): Flow<Int> {
-        return obxReadStatusDao.observeAmountObxNotRead()
     }
 
     override suspend fun saveHL7FileData(hl7Data: HL7Data) {

@@ -113,7 +113,6 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
     override suspend fun observeTestResults(): Flow<List<TestResult>> {
         val flowObxData = observeObxSegmentsFromDatabase()
         val flowObxReadStatus = observeOBXReadStatusFromDatabase()
-        hL7Repository.retrieveHL7FileData()
         return combineTestResultsUseCase.combineToFlowTestResults(
             flowObxData,
             flowObxReadStatus,

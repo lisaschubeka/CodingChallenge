@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.codingchallenge.domain.model.TestResult
 
-// TODO is it a smarter idea to pass functions of the viewmodel into the component or the entire viewmodel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TestResultCard(

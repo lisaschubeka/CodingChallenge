@@ -21,7 +21,12 @@ fun HL7Screen(viewModel: HL7ViewModel) {
     val uiState by viewModel.uiState.collectAsState()
 
     Column {
-        UserHeader(uiState.user, viewModel)
+        UserHeader(
+            uiState.user,
+            viewModel::loadFromFileAndSaveToDatabase,
+            viewModel::loadFromDatabase,
+            viewModel::formatBirthday
+        )
 
         if (uiState.testResults.isNotEmpty()) {
             StatusCountDisplay(uiState.testResults, "auffällige Befunde", "Überprüfung notwendig")
