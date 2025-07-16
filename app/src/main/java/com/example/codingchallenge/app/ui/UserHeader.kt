@@ -2,7 +2,6 @@ package com.example.codingchallenge.app.ui
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -41,7 +40,6 @@ fun UserHeader(
     loadFromFileAndSaveToDatabase: (Context, Uri) -> Unit,
     formatBirthday: (dateString: String) -> String,
 ) {
-    Log.w("(UserHeader) CURRENT USER IS: ", user.toString())
     user?.let {
         Column(
             modifier = Modifier
@@ -124,6 +122,7 @@ fun PickDocumentButton(loadFromFileAndSaveToDatabase: (Context, Uri) -> Unit) {
     }
     Column {
         Button(onClick = {
+            // TODO needs to be hl7 only
             launcher.launch(arrayOf("*/*"))
         }) {
             Text(text = "Select Document")
