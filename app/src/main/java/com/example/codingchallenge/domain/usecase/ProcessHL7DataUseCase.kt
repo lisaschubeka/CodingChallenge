@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.Flow
 
 // Top level use case used by HL7ViewModel
 interface ProcessHL7DataUseCase {
-    fun parseToHL7DataObject(): HL7Data?
+    fun parseToHL7DataObject(hl7Raw: String): HL7Data?
+
     suspend fun observeTestResults(
     ): Flow<List<TestResult>>
 

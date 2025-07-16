@@ -1,5 +1,8 @@
 package com.example.codingchallenge.app.presentation
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.codingchallenge.domain.model.TestResult
@@ -13,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
@@ -37,7 +42,7 @@ class HL7ViewModel @Inject constructor(
         loadFromDatabase()
     }
 
-    fun loadFromDatabase() {
+    private fun loadFromDatabase() {
         viewModelScope.launch {
             try {
                 val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
@@ -50,14 +55,31 @@ class HL7ViewModel @Inject constructor(
             } catch (e: Exception) {
 
             }
-
         }
     }
 
-    fun loadFromFileAndSaveAndLoadFromDatabase() {
+    private fun readFromHL7File(context: Context, uri: Uri): String {
+        val contentResolver = context.contentResolver
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            val bytes = inputStream.readBytes()
+            Log.w("FILE READING", "Resource file size: ${bytes.size} bytes")
+            val file = File(context.filesDir, "Beispiel%20HL7.hl7")
+            // TODO FIGURE OUT WHY THIS WORKS I DONT GET IT
+            FileOutputStream(file).use { outputStream ->
+                outputStream.write(bytes)
+            }
+            Log.w("FILE READING", file.readText())
+            return file.readText()
+        }
+        return ""
+    }
+
+    fun loadFromFileAndSaveAndLoadFromDatabase(context: Context, uri: Uri) {
+
         viewModelScope.launch {
             processHL7DataUseCase.clearDatabaseData()
-            val hl7parsed = processHL7DataUseCase.parseToHL7DataObject()
+            val hl7Raw = readFromHL7File(context, uri)
+            val hl7parsed = processHL7DataUseCase.parseToHL7DataObject(hl7Raw)
             if (hl7parsed != null) {
                 processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
                 // This retrieval step is technically unnecessary, but it ensures we are only
@@ -74,9 +96,7 @@ class HL7ViewModel @Inject constructor(
         _uiState.update {
             run {
                 HL7UiState(
-                    isLoading = false,
-                    testResults = listTestResult,
-                    user = user
+                    isLoading = false, testResults = listTestResult, user = user
                 )
             }
         }

@@ -1,6 +1,10 @@
 package com.example.codingchallenge.app.ui
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,15 +19,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,8 +38,8 @@ import com.example.codingchallenge.domain.model.User
 @Composable
 fun UserHeader(
     user: User?,
-    loadFromFileAndSaveToDatabase: () -> Unit,
-    formatBirthday: (dateString: String) -> String
+    loadFromFileAndSaveToDatabase: (Context, Uri) -> Unit,
+    formatBirthday: (dateString: String) -> String,
 ) {
     Log.w("(UserHeader) CURRENT USER IS: ", user.toString())
     user?.let {
@@ -78,19 +83,7 @@ fun UserHeader(
                         )
                     }
                 }
-
-                Button(
-                    onClick = {
-                        loadFromFileAndSaveToDatabase()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary
-                    ),
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    Text("Load Data")
-                }
+                PickDocumentButton(loadFromFileAndSaveToDatabase)
             }
 
 
@@ -122,3 +115,24 @@ fun UserHeader(
         }
     }
 }
+
+@Composable
+fun PickDocumentButton(loadFromFileAndSaveToDatabase: (Context, Uri) -> Unit) {
+    val result = remember { mutableStateOf<Uri?>(null) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
+        result.value = it
+    }
+    Column {
+        Button(onClick = {
+            launcher.launch(arrayOf("*/*"))
+        }) {
+            Text(text = "Select Document")
+        }
+        result.value?.let { uri ->
+            val context = LocalContext.current
+            loadFromFileAndSaveToDatabase(context, uri)
+        }
+
+    }
+}
+

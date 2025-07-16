@@ -14,6 +14,7 @@ import androidx.room.PrimaryKey
         onDelete = ForeignKey.CASCADE
     )]
 )
+
 data class OBXSegmentEntity(
     // OBX.1 - Set ID - OBX (SI)
     @PrimaryKey
