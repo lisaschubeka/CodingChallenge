@@ -45,15 +45,19 @@ class HL7ViewModel @Inject constructor(
     private fun loadFromDatabase() {
         viewModelScope.launch {
             try {
-                val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
-                val user = processHL7DataUseCase.mapToUser(dataFromDb.pid, dataFromDb.msh)
-                val flowTestResults = processHL7DataUseCase.observeTestResults()
-                flowTestResults.collectLatest { listTestResults ->
-                    Log.w("FILE READING: collect latest: ", listTestResults.toString())
-                    // The user variable below will not change even if value in database changes
-                    updateUiState(user, listTestResults)
+                val flowDatabaseUpdates = processHL7DataUseCase.observeChangesInDatabase()
+                flowDatabaseUpdates.collectLatest { databaseUpdate ->
+                    Log.w("FILE READING: collect latest: ", databaseUpdate.toString())
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            user = databaseUpdate.first,
+                            testResults = databaseUpdate.second
+                        )
+                    }
                 }
             } catch (e: Exception) {
+                Log.w("FILE READING: exception: ", e.message.toString())
 
             }
         }
@@ -65,7 +69,6 @@ class HL7ViewModel @Inject constructor(
             val bytes = inputStream.readBytes()
             Log.w("FILE READING", "Resource file size: ${bytes.size} bytes")
             val file = File(context.filesDir, "Beispiel%20HL7.hl7")
-            // TODO FIGURE OUT WHY THIS WORKS I DONT GET IT
             FileOutputStream(file).use { outputStream ->
                 outputStream.write(bytes)
             }
@@ -81,34 +84,22 @@ class HL7ViewModel @Inject constructor(
 
             try {
                 val hl7Raw = readFromHL7File(
-                    context,
-                    uri
+                    context, uri
                 )
 
-                if (hl7Raw.isNotEmpty()) {
-                    processHL7DataUseCase.clearDatabaseData()
+                processHL7DataUseCase.clearDatabaseData()
 
-                    val hl7parsed = processHL7DataUseCase.parseToHL7DataObject(hl7Raw)
-                    if (hl7parsed != null) {
-                        processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
-                        val dataFromDb =
-                            processHL7DataUseCase.retrieveHL7DataFromDatabase()
-                        obxReadStatusUseCase.addObxIdsAsUnread(dataFromDb.obxSegmentList.map { it.setId })
-                    }
-                } else {
-                    _uiState.update { it.copy(isLoading = false) }
+                val hl7parsed = processHL7DataUseCase.parseToHL7DataObject(hl7Raw)
+                Log.w("FILE READING", "hl7parsed: ${hl7parsed.toString()}")
+
+                if (hl7parsed != null) {
+                    processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
+                    obxReadStatusUseCase.addObxIdsAsUnread(hl7parsed.obxSegmentList.map { it.setId })
                 }
-            } catch (e: Exception) {
-            }
-        }
-    }
+                _uiState.update { it.copy(isLoading = false) }
 
-    private fun updateUiState(user: User, listTestResult: List<TestResult>) {
-        _uiState.update {
-            run {
-                HL7UiState(
-                    isLoading = false, testResults = listTestResult, user = user
-                )
+            } catch (e: Exception) {
+                Log.w("FILE READING", "EXCEPTION: ${e.message}")
             }
         }
     }

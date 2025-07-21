@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegmentEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PIDSegmentDao {
@@ -14,5 +15,5 @@ interface PIDSegmentDao {
     suspend fun getPIDEntityById(id: Long): PIDSegmentEntity?
 
     @Query("SELECT * FROM pid_segments ORDER BY set_id DESC LIMIT 1")
-    suspend fun getPidSegment(): PIDSegmentEntity?
+    fun observePidSegment(): Flow<PIDSegmentEntity?>
 }

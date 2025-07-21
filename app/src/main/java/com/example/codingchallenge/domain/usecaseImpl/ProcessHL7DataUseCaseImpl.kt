@@ -2,7 +2,6 @@ package com.example.codingchallenge.domain.usecaseImpl
 
 import android.util.Log
 import com.example.codingchallenge.domain.model.HL7Data
-import com.example.codingchallenge.domain.model.ObxReadStatus
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
@@ -15,6 +14,7 @@ import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
 import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 class ProcessHL7DataUseCaseImpl @Inject constructor(
@@ -93,33 +93,18 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
         hL7Repository.saveHL7FileData(hl7data)
     }
 
-    override suspend fun retrieveHL7DataFromDatabase(): HL7Data {
-        return hL7Repository.retrieveHL7FileData()
-    }
-
-    override suspend fun observeObxSegmentsFromDatabase(): Flow<List<OBXSegment>> {
-        return hL7Repository.observeObxSegmentsFromDatabase()
-    }
-
-    override suspend fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
-        return hL7Repository.observeOBXReadStatusFromDatabase()
-    }
-
     override suspend fun clearDatabaseData() {
         hL7Repository.clearDatabase()
     }
 
-    override suspend fun observeTestResults(): Flow<List<TestResult>> {
-        val flowObxData = observeObxSegmentsFromDatabase()
-        val flowObxReadStatus = observeOBXReadStatusFromDatabase()
+    override fun observeChangesInDatabase(): Flow<Pair<User, List<TestResult>>> {
+        val flowObxReadStatus = hL7Repository.observeOBXReadStatusFromDatabase()
+        val flowHl7Data = hL7Repository.observeHL7FileData()
         return combineTestResultsUseCase.combineToFlowTestResults(
-            flowObxData,
+            flowHl7Data,
             flowObxReadStatus,
-            hL7Repository.retrieveHL7FileData().nteMap
-        )
+        ).onEach { Log.d("FILE READING", " - flowEverything $it") }
     }
 
-    override fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {
-        return parseToUserUseCase.parseToUser(pidSegment, mshSegment)
-    }
+
 }

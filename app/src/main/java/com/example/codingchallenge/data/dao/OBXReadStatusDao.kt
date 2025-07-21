@@ -17,14 +17,8 @@ interface OBXReadStatusDao {
     @Update
     suspend fun updateObxReadStatus(status: ObxReadStatusEntity)
 
-    @Query("SELECT * FROM obx_read_status WHERE obx_id = :obxId LIMIT 1")
-    fun getObxReadStatus(obxId: Long): Flow<ObxReadStatusEntity?>
-
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllObxAsUnread(statuses: List<ObxReadStatusEntity>)
-
-    @Query("SELECT COUNT(*) FROM obx_read_status WHERE is_read = 0")
-    fun observeAmountObxNotRead(): Flow<Int>
 
     @Query("SELECT * FROM obx_read_status")
     fun observeAllObxNotRead(): Flow<List<ObxReadStatusEntity>>

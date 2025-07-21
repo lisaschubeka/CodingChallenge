@@ -1,19 +1,23 @@
 // data/repository/HL7MessageRepositoryImpl.kt
 package com.example.codingchallenge.data.repository
 
+import android.util.Log
 import com.example.codingchallenge.app.AppDatabase
 import com.example.codingchallenge.data.model.ObxReadStatusEntity
 import com.example.codingchallenge.data.model.mapToDomain
 import com.example.codingchallenge.domain.model.HL7Data
 import com.example.codingchallenge.domain.model.ObxReadStatus
+import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegmentEntity
-import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
+import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import com.example.codingchallenge.domain.model.hl7Segment.mapToDomain
 import com.example.codingchallenge.domain.model.hl7Segment.mapToEntity
 import com.example.codingchallenge.domain.repository.HL7Repository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 class HL7RepositoryImpl @Inject constructor(
@@ -42,16 +46,19 @@ class HL7RepositoryImpl @Inject constructor(
 
             mshSegmentDao.deleteAll()
 
-            val mshEntity = hl7Data.msh.mapToEntity()
-            val mshId = mshSegmentDao.insertMSHSegmentEntity(mshEntity)
+            val mshEntity = hl7Data.msh?.mapToEntity()
+            if (mshEntity != null) {
+                val mshId = mshSegmentDao.insertMSHSegmentEntity(mshEntity)
+                val pidSegmentEntity = hl7Data.pid?.mapToEntity(mshId)
+                if (pidSegmentEntity != null) {
+                    pidSegmentDao.insertPIDSegmentEntity(pidSegmentEntity)
+                    val obxEntitiesToInsert = hl7Data.obxSegmentList.map { obxSegment ->
+                        obxSegment.mapToEntity(mshId)
+                    }
+                    obxSegmentDao.insertAllObxSegments(obxEntitiesToInsert)
 
-            val pidSegmentEntity = hl7Data.pid.mapToEntity(mshId)
-            pidSegmentDao.insertPIDSegmentEntity(pidSegmentEntity)
-
-            val obxEntitiesToInsert = hl7Data.obxSegmentList.map { obxSegment ->
-                obxSegment.mapToEntity(mshId)
+                }
             }
-            obxSegmentDao.insertAllObxSegments(obxEntitiesToInsert)
 
             val nteEntitiesToInsert: List<NTESegmentEntity> =
                 hl7Data.nteMap.flatMap { (obxIdFromMap, nteSegmentsForObx) ->
@@ -63,23 +70,37 @@ class HL7RepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun retrieveHL7FileData(): HL7Data {
-        val msh = mshSegmentDao.getMshSegment()
-            ?: throw IllegalStateException("")
-        val pid = pidSegmentDao.getPidSegment()
-            ?: throw IllegalStateException("")
-        val obxList = obxSegmentDao.getAllObxSegments()
-        val nteList = nteSegmentDao.getAllNteSegments()
-            .map { nteSegmentEntity -> nteSegmentEntity.mapToDomain() }
+    override fun observeHL7FileData(): Flow<HL7Data> {
+        val mshFlow = mshSegmentDao.observeMshSegment()
+            .onEach { Log.d("FILE READING", " - flowMSH $it") }
+        val pidFlow = pidSegmentDao.observePidSegment()
+            .onEach { Log.d("FILE READING", " - flowPID $it") }
+        val obxFlow = obxSegmentDao.observeAllObxSegments()
+            .onEach { Log.d("FILE READING", " - flowOBX $it") }
+        val nteFlow = nteSegmentDao.observeAllNteSegments()
+            .onEach { Log.d("FILE READING", " - flowNTE $it") }
 
-        val nteMap: Map<Long, List<NTESegment>> = nteList.groupBy { it.setId }
+        return combine(
+            mshFlow,
+            pidFlow,
+            obxFlow,
+            nteFlow
+        ) { mshEntity, pidEntity, obxEntities, nteEntities ->
 
-        return HL7Data(
-            msh.mapToDomain(),
-            pid.mapToDomain(),
-            obxList.map { obxSegmentEntity -> obxSegmentEntity.mapToDomain() },
-            nteMap
-        )
+            val msh: MSHSegment? = mshEntity?.mapToDomain()
+            val pid: PIDSegment? = pidEntity?.mapToDomain()
+            val obxList = obxEntities.map { it.mapToDomain() }
+            val nteList = nteEntities.map { it.mapToDomain() }
+
+            val nteMap: Map<Long, List<NTESegment>> = nteList.groupBy { it.setId }
+
+            HL7Data(
+                msh = msh,
+                pid = pid,
+                obxSegmentList = obxList,
+                nteMap = nteMap
+            )
+        }.onEach { Log.d("FILE READING", " - flowHL7FileData $it") }
     }
 
     override suspend fun clearDatabase() {
@@ -89,20 +110,10 @@ class HL7RepositoryImpl @Inject constructor(
         obxReadStatusDao.deleteAll()
     }
 
-    override suspend fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
-        return obxReadStatusDao.observeAllObxNotRead()
-            .map { obxReadStatusList ->
-                obxReadStatusList
-                    .map { obxReadStatusEntity -> obxReadStatusEntity.mapToDomain() }
-            }
-    }
-
-    override suspend fun observeObxSegmentsFromDatabase(): Flow<List<OBXSegment>> {
-        return obxSegmentDao.observeAllObxSegments()
-            .map { obxSegmentList ->
-                obxSegmentList
-                    .map { obxSegmentEntity -> obxSegmentEntity.mapToDomain() }
-            }
+    override fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
+        return obxReadStatusDao.observeAllObxNotRead().map { obxReadStatusList ->
+            obxReadStatusList.map { obxReadStatusEntity -> obxReadStatusEntity.mapToDomain() }
+        }.onEach { Log.d("FILE READING", " - flowOBXRead $it") }
     }
 
 }

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegmentEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NTESegmentDao {
@@ -17,5 +18,5 @@ interface NTESegmentDao {
     suspend fun getNTEEntityById(id: Long): NTESegmentEntity?
 
     @Query("SELECT * FROM nte_segments")
-    suspend fun getAllNteSegments(): List<NTESegmentEntity>
+    fun observeAllNteSegments(): Flow<List<NTESegmentEntity>>
 }

@@ -1,9 +1,13 @@
 package com.example.codingchallenge.domain.usecase
 
+import com.example.codingchallenge.domain.model.HL7Data
 import com.example.codingchallenge.domain.model.ObxReadStatus
 import com.example.codingchallenge.domain.model.TestResult
+import com.example.codingchallenge.domain.model.User
+import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
+import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import kotlinx.coroutines.flow.Flow
 
 interface CombineTestResultsUseCase {
@@ -14,8 +18,10 @@ interface CombineTestResultsUseCase {
     ): TestResult
 
     fun combineToFlowTestResults(
-        flowObxSegments: Flow<List<OBXSegment>>,
+        flowHL7Data: Flow<HL7Data>,
         flowReadStatus: Flow<List<ObxReadStatus>>,
-        nteMap: Map<Long, List<NTESegment>>
-    ): Flow<List<TestResult>>
+    ): Flow<Pair<User, List<TestResult>>>
+
+    fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User
+
 }

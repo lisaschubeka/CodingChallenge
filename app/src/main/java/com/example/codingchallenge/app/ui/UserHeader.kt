@@ -2,6 +2,7 @@ package com.example.codingchallenge.app.ui
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -21,8 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -116,20 +115,22 @@ fun UserHeader(
 
 @Composable
 fun PickDocumentButton(loadFromFileAndSaveToDatabase: (Context, Uri) -> Unit) {
-    val result = remember { mutableStateOf<Uri?>(null) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
-        result.value = it
-    }
+    val context = LocalContext.current
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                loadFromFileAndSaveToDatabase(context, uri)
+            } else {
+                Log.d("PickDocumentButton", "Document selection cancelled or no document selected.")
+            }
+        }
+
     Column {
         Button(onClick = {
             // TODO needs to be hl7 only
             launcher.launch(arrayOf("*/*"))
         }) {
             Text(text = "Select Document")
-        }
-        result.value?.let { uri ->
-            val context = LocalContext.current
-            loadFromFileAndSaveToDatabase(context, uri)
         }
 
     }
