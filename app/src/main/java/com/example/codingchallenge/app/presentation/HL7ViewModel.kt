@@ -43,7 +43,7 @@ class HL7ViewModel @Inject constructor(
     private val _uiState: MutableStateFlow<HL7UiState> = MutableStateFlow(HL7UiState())
     val uiState: StateFlow<HL7UiState> = _uiState.asStateFlow()
 
-    private val _events = Channel<LoadHL7FileEvent>()
+    private val _events = Channel<LoadHL7FileEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
     init {
