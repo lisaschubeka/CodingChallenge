@@ -11,12 +11,6 @@ interface MSHSegmentDao {
     @Insert
     suspend fun insertMSHSegmentEntity(message: MSHSegmentEntity): Long
 
-    @Query("SELECT * FROM msh_segments WHERE id = :id LIMIT 1")
-    suspend fun getMSHEntityById(id: Long): MSHSegmentEntity?
-
-    @Query("SELECT * FROM msh_segments ORDER BY id DESC LIMIT 1")
-    suspend fun getMshSegment(): MSHSegmentEntity?
-
     @Query("DELETE FROM msh_segments")
     suspend fun deleteAll(): Int
 

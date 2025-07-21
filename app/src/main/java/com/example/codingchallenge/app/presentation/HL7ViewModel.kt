@@ -45,20 +45,18 @@ class HL7ViewModel @Inject constructor(
     private fun loadFromDatabase() {
         viewModelScope.launch {
             try {
-                val flowDatabaseUpdates = processHL7DataUseCase.observeChangesInDatabase()
-                flowDatabaseUpdates.collectLatest { databaseUpdate ->
-                    Log.w("FILE READING: collect latest: ", databaseUpdate.toString())
+                val flowHL7FileUpdates = processHL7DataUseCase.observeChangesForHL7File()
+                flowHL7FileUpdates.collectLatest { HL7FileUpdates ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            user = databaseUpdate.first,
-                            testResults = databaseUpdate.second
+                            user = HL7FileUpdates.first,
+                            testResults = HL7FileUpdates.second
                         )
                     }
                 }
             } catch (e: Exception) {
                 Log.w("FILE READING: exception: ", e.message.toString())
-
             }
         }
     }
@@ -88,9 +86,7 @@ class HL7ViewModel @Inject constructor(
                 )
 
                 processHL7DataUseCase.clearDatabaseData()
-
                 val hl7parsed = processHL7DataUseCase.parseToHL7DataObject(hl7Raw)
-                Log.w("FILE READING", "hl7parsed: ${hl7parsed.toString()}")
 
                 if (hl7parsed != null) {
                     processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)

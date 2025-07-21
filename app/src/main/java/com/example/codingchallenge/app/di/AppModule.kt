@@ -2,15 +2,13 @@ package com.example.codingchallenge.app.di
 
 import com.example.codingchallenge.data.repository.HL7RepositoryImpl
 import com.example.codingchallenge.domain.repository.HL7Repository
-import com.example.codingchallenge.domain.usecase.CombineTestResultsUseCase
+import com.example.codingchallenge.domain.usecase.CombineForHL7UIUseCase
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
-import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import com.example.codingchallenge.domain.usecaseImpl.CombineTestResultsUseCaseImpl
 import com.example.codingchallenge.domain.usecaseImpl.CreateSegmentUseCaseImpl
 import com.example.codingchallenge.domain.usecaseImpl.OBXReadStatusUseCaseImpl
-import com.example.codingchallenge.domain.usecaseImpl.ParseToUserUseCaseImpl
 import com.example.codingchallenge.domain.usecaseImpl.ProcessHL7DataUseCaseImpl
 import dagger.Binds
 import dagger.Module
@@ -32,14 +30,9 @@ abstract class hl7Module {
     ): CreateSegmentUseCase
 
     @Binds
-    abstract fun bindParseToUserUseCase(
-        impl: ParseToUserUseCaseImpl
-    ): ParseToUserUseCase
-
-    @Binds
     abstract fun bindParseToTestResultsUseCase(
         impl: CombineTestResultsUseCaseImpl
-    ): CombineTestResultsUseCase
+    ): CombineForHL7UIUseCase
 
     @Binds
     abstract fun bindOBXReadStatusUseCase(

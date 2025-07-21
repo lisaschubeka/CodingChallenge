@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
 import com.example.codingchallenge.data.model.ObxReadStatusEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -13,9 +12,6 @@ interface OBXReadStatusDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertObxReadStatus(status: ObxReadStatusEntity)
-
-    @Update
-    suspend fun updateObxReadStatus(status: ObxReadStatusEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllObxAsUnread(statuses: List<ObxReadStatusEntity>)

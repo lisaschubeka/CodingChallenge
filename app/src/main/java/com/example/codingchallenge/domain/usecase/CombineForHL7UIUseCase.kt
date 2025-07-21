@@ -10,14 +10,14 @@ import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import kotlinx.coroutines.flow.Flow
 
-interface CombineTestResultsUseCase {
+interface CombineForHL7UIUseCase {
     fun convertObxSegmentToTestResult(
         obxSegment: OBXSegment,
         nteList: List<NTESegment>?,
         isRead: Boolean
     ): TestResult
 
-    fun combineToFlowTestResults(
+    fun combineForHL7UIUpdates(
         flowHL7Data: Flow<HL7Data>,
         flowReadStatus: Flow<List<ObxReadStatus>>,
     ): Flow<Pair<User, List<TestResult>>>

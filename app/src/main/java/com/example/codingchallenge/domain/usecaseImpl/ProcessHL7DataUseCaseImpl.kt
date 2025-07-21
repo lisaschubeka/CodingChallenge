@@ -9,18 +9,15 @@ import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import com.example.codingchallenge.domain.repository.HL7Repository
-import com.example.codingchallenge.domain.usecase.CombineTestResultsUseCase
+import com.example.codingchallenge.domain.usecase.CombineForHL7UIUseCase
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
-import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 class ProcessHL7DataUseCaseImpl @Inject constructor(
     private val segmentCreator: CreateSegmentUseCase,
-    private val parseToUserUseCase: ParseToUserUseCase,
-    private val combineTestResultsUseCase: CombineTestResultsUseCase,
+    private val combineTestResultsUseCase: CombineForHL7UIUseCase,
     private val hL7Repository: HL7Repository
 ) : ProcessHL7DataUseCase {
 
@@ -97,13 +94,13 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
         hL7Repository.clearDatabase()
     }
 
-    override fun observeChangesInDatabase(): Flow<Pair<User, List<TestResult>>> {
+    override fun observeChangesForHL7File(): Flow<Pair<User, List<TestResult>>> {
         val flowObxReadStatus = hL7Repository.observeOBXReadStatusFromDatabase()
         val flowHl7Data = hL7Repository.observeHL7FileData()
-        return combineTestResultsUseCase.combineToFlowTestResults(
+        return combineTestResultsUseCase.combineForHL7UIUpdates(
             flowHl7Data,
             flowObxReadStatus,
-        ).onEach { Log.d("FILE READING", " - flowEverything $it") }
+        )
     }
 
 

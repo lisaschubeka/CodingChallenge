@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface ProcessHL7DataUseCase {
     fun parseToHL7DataObject(hl7Raw: String): HL7Data?
 
-    fun observeChangesInDatabase(
+    fun observeChangesForHL7File(
     ): Flow<Pair<User, List<TestResult>>>
 
     suspend fun saveHL7DataToDatabase(hl7data: HL7Data)

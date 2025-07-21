@@ -1,7 +1,6 @@
 // data/repository/HL7MessageRepositoryImpl.kt
 package com.example.codingchallenge.data.repository
 
-import android.util.Log
 import com.example.codingchallenge.app.AppDatabase
 import com.example.codingchallenge.data.model.ObxReadStatusEntity
 import com.example.codingchallenge.data.model.mapToDomain
@@ -17,7 +16,6 @@ import com.example.codingchallenge.domain.repository.HL7Repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 class HL7RepositoryImpl @Inject constructor(
@@ -72,13 +70,9 @@ class HL7RepositoryImpl @Inject constructor(
 
     override fun observeHL7FileData(): Flow<HL7Data> {
         val mshFlow = mshSegmentDao.observeMshSegment()
-            .onEach { Log.d("FILE READING", " - flowMSH $it") }
         val pidFlow = pidSegmentDao.observePidSegment()
-            .onEach { Log.d("FILE READING", " - flowPID $it") }
         val obxFlow = obxSegmentDao.observeAllObxSegments()
-            .onEach { Log.d("FILE READING", " - flowOBX $it") }
         val nteFlow = nteSegmentDao.observeAllNteSegments()
-            .onEach { Log.d("FILE READING", " - flowNTE $it") }
 
         return combine(
             mshFlow,
@@ -100,7 +94,7 @@ class HL7RepositoryImpl @Inject constructor(
                 obxSegmentList = obxList,
                 nteMap = nteMap
             )
-        }.onEach { Log.d("FILE READING", " - flowHL7FileData $it") }
+        }
     }
 
     override suspend fun clearDatabase() {
@@ -113,7 +107,7 @@ class HL7RepositoryImpl @Inject constructor(
     override fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
         return obxReadStatusDao.observeAllObxNotRead().map { obxReadStatusList ->
             obxReadStatusList.map { obxReadStatusEntity -> obxReadStatusEntity.mapToDomain() }
-        }.onEach { Log.d("FILE READING", " - flowOBXRead $it") }
+        }
     }
 
 }

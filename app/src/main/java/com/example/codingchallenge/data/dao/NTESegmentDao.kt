@@ -8,14 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NTESegmentDao {
-    @Insert
-    suspend fun insertNTESegmentEntity(message: NTESegmentEntity): Long
 
     @Insert
     suspend fun insertAllNteSegments(segments: List<NTESegmentEntity>)
-
-    @Query("SELECT * FROM nte_segments WHERE set_id = :id LIMIT 1")
-    suspend fun getNTEEntityById(id: Long): NTESegmentEntity?
 
     @Query("SELECT * FROM nte_segments")
     fun observeAllNteSegments(): Flow<List<NTESegmentEntity>>
