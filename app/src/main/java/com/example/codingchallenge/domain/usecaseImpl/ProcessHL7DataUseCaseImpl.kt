@@ -1,9 +1,7 @@
 package com.example.codingchallenge.domain.usecaseImpl
 
 import android.util.Log
-import com.example.codingchallenge.data.HL7_FILE
 import com.example.codingchallenge.domain.model.HL7Data
-import com.example.codingchallenge.domain.model.ObxReadStatus
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
@@ -11,31 +9,29 @@ import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import com.example.codingchallenge.domain.repository.HL7Repository
-import com.example.codingchallenge.domain.usecase.CombineTestResultsUseCase
+import com.example.codingchallenge.domain.usecase.CombineForHL7UIUseCase
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
-import com.example.codingchallenge.domain.usecase.ParseToUserUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class ProcessHL7DataUseCaseImpl @Inject constructor(
     private val segmentCreator: CreateSegmentUseCase,
-    private val parseToUserUseCase: ParseToUserUseCase,
-    private val combineTestResultsUseCase: CombineTestResultsUseCase,
+    private val combineTestResultsUseCase: CombineForHL7UIUseCase,
     private val hL7Repository: HL7Repository
 ) : ProcessHL7DataUseCase {
 
     private val TAG = "Hl7Parser"
     private var fieldDelimiter: Char = '|'
 
-    override fun parseToHL7DataObject(): HL7Data? {
+    override fun parseToHL7DataObject(hl7Raw: String): HL7Data? {
         var mshSegment: MSHSegment? = null
         var pidSegment: PIDSegment? = null
         val obxList = mutableListOf<OBXSegment>()
         // Map of the OBX id to the corresponding NTE note
         val obxToNteMap = mutableMapOf<Long, MutableList<NTESegment>>()
 
-        val segments = HL7_FILE.split('\r', '\n').filter { it.isNotBlank() }
+        val segments = hl7Raw.split('\r', '\n').filter { it.isNotBlank() }
         if (segments.isEmpty()) {
             Log.w(TAG, "No segments found in the HL7 message.")
             return null
@@ -94,33 +90,18 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
         hL7Repository.saveHL7FileData(hl7data)
     }
 
-    override suspend fun retrieveHL7DataFromDatabase(): HL7Data {
-        return hL7Repository.retrieveHL7FileData()
-    }
-
-    override suspend fun observeObxSegmentsFromDatabase(): Flow<List<OBXSegment>> {
-        return hL7Repository.observeObxSegmentsFromDatabase()
-    }
-
-    override suspend fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
-        return hL7Repository.observeOBXReadStatusFromDatabase()
-    }
-
     override suspend fun clearDatabaseData() {
         hL7Repository.clearDatabase()
     }
 
-    override suspend fun observeTestResults(): Flow<List<TestResult>> {
-        val flowObxData = observeObxSegmentsFromDatabase()
-        val flowObxReadStatus = observeOBXReadStatusFromDatabase()
-        return combineTestResultsUseCase.combineToFlowTestResults(
-            flowObxData,
+    override fun observeChangesForHL7File(): Flow<Pair<User, List<TestResult>>> {
+        val flowObxReadStatus = hL7Repository.observeOBXReadStatusFromDatabase()
+        val flowHl7Data = hL7Repository.observeHL7FileData()
+        return combineTestResultsUseCase.combineForHL7UIUpdates(
+            flowHl7Data,
             flowObxReadStatus,
-            hL7Repository.retrieveHL7FileData().nteMap
         )
     }
 
-    override fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {
-        return parseToUserUseCase.parseToUser(pidSegment, mshSegment)
-    }
+
 }

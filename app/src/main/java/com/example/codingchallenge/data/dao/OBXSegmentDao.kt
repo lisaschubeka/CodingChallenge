@@ -11,16 +11,6 @@ interface OBXSegmentDao {
     @Insert
     suspend fun insertAllObxSegments(segments: List<OBXSegmentEntity>)
 
-    @Insert
-    suspend fun insertOBXSegmentEntity(message: OBXSegmentEntity): Long
-
-    @Query("SELECT * FROM obx_segments WHERE set_id = :id LIMIT 1")
-    suspend fun getOBXEntityById(id: Long): OBXSegmentEntity?
-
-
-    @Query("SELECT * FROM obx_segments")
-    suspend fun getAllObxSegments(): List<OBXSegmentEntity>
-
     @Query("SELECT * FROM obx_segments")
     fun observeAllObxSegments(): Flow<List<OBXSegmentEntity>>
 }

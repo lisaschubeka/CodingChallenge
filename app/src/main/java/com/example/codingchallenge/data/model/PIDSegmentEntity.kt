@@ -18,7 +18,7 @@ data class PIDSegmentEntity(
     @PrimaryKey
     @ColumnInfo(name = "set_id")
     val setId: Long,
-
+    // TODO will need combine this with the primary key when saving multiple files
     // Foreign key reference
     @ColumnInfo(name = "msh_id", index = true)
     val mshId: Long,

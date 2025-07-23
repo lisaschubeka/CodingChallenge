@@ -1,5 +1,8 @@
 package com.example.codingchallenge.app.presentation
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.codingchallenge.domain.model.TestResult
@@ -13,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
@@ -37,47 +42,60 @@ class HL7ViewModel @Inject constructor(
         loadFromDatabase()
     }
 
-    fun loadFromDatabase() {
+    private fun loadFromDatabase() {
         viewModelScope.launch {
             try {
-                val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
-                val user = processHL7DataUseCase.mapToUser(dataFromDb.pid, dataFromDb.msh)
-                val flowTestResults = processHL7DataUseCase.observeTestResults()
-                flowTestResults.collectLatest { listTestResults ->
-                    // The user variable below will not change even if value in database changes
-                    updateUiState(user, listTestResults)
+                val flowHL7FileUpdates = processHL7DataUseCase.observeChangesForHL7File()
+                flowHL7FileUpdates.collectLatest { HL7FileUpdates ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            user = HL7FileUpdates.first,
+                            testResults = HL7FileUpdates.second
+                        )
+                    }
                 }
             } catch (e: Exception) {
-
+                Log.w("FILE READING: exception: ", e.message.toString())
             }
-
         }
     }
 
-    fun loadFromFileAndSaveAndLoadFromDatabase() {
+    private fun readFromHL7File(context: Context, uri: Uri): String {
+        val contentResolver = context.contentResolver
+        contentResolver.openInputStream(uri)?.use { inputStream ->
+            val bytes = inputStream.readBytes()
+            Log.w("FILE READING", "Resource file size: ${bytes.size} bytes")
+            val file = File(context.filesDir, "tmp.hl7")
+            FileOutputStream(file).use { outputStream ->
+                outputStream.write(bytes)
+            }
+            return file.readText()
+        }
+        return ""
+    }
+
+    // In HL7ViewModel
+    fun loadFromFileAndSaveAndLoadFromDatabase(context: Context, uri: Uri) {
         viewModelScope.launch {
-            processHL7DataUseCase.clearDatabaseData()
-            val hl7parsed = processHL7DataUseCase.parseToHL7DataObject()
-            if (hl7parsed != null) {
-                processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
-                // This retrieval step is technically unnecessary, but it ensures we are only
-                // displaying data that is actually in the database and not just from the parsed
-                // results in variable hl7parsed
-                val dataFromDb = processHL7DataUseCase.retrieveHL7DataFromDatabase()
-                obxReadStatusUseCase.addObxIdsAsUnread(dataFromDb.obxSegmentList.map { it.setId })
-            }
-            loadFromDatabase()
-        }
-    }
+            _uiState.update { it.copy(isLoading = true) }
 
-    private fun updateUiState(user: User, listTestResult: List<TestResult>) {
-        _uiState.update {
-            run {
-                HL7UiState(
-                    isLoading = false,
-                    testResults = listTestResult,
-                    user = user
+            try {
+                val hl7Raw = readFromHL7File(
+                    context, uri
                 )
+
+                processHL7DataUseCase.clearDatabaseData()
+                val hl7parsed = processHL7DataUseCase.parseToHL7DataObject(hl7Raw)
+
+                if (hl7parsed != null) {
+                    processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
+                    obxReadStatusUseCase.addObxIdsAsUnread(hl7parsed.obxSegmentList.map { it.setId })
+                }
+                _uiState.update { it.copy(isLoading = false) }
+
+            } catch (e: Exception) {
+                Log.w("FILE READING", "EXCEPTION: ${e.message}")
             }
         }
     }
