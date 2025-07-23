@@ -66,7 +66,7 @@ class HL7ViewModel @Inject constructor(
         contentResolver.openInputStream(uri)?.use { inputStream ->
             val bytes = inputStream.readBytes()
             Log.w("FILE READING", "Resource file size: ${bytes.size} bytes")
-            val file = File(context.filesDir, "Beispiel%20HL7.hl7")
+            val file = File(context.filesDir, "tmp.hl7")
             FileOutputStream(file).use { outputStream ->
                 outputStream.write(bytes)
             }
