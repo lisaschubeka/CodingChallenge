@@ -118,7 +118,11 @@ fun PickDocumentButton(loadFromFileAndSaveToDatabase: (Context, Uri) -> Unit) {
     val context = LocalContext.current
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) {
+            // if files are accessed through recents, the uri gets replaced to something cached (not the original file path)
+            // only works if you go to the device in the file system and then go to downloads,
+            // then file path will remain the original one
+            // TODO make sure it works for all (cached or not cached) file paths
+            if (uri != null && uri.lastPathSegment?.endsWith(".hl7", ignoreCase = true) == true) {
                 loadFromFileAndSaveToDatabase(context, uri)
             } else {
                 Log.d("PickDocumentButton", "Document selection cancelled or no document selected.")
@@ -127,7 +131,6 @@ fun PickDocumentButton(loadFromFileAndSaveToDatabase: (Context, Uri) -> Unit) {
 
     Column {
         Button(onClick = {
-            // TODO needs to be hl7 only
             launcher.launch(arrayOf("*/*"))
         }) {
             Text(text = "Select Document")
