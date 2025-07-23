@@ -1,11 +1,11 @@
 package com.example.codingchallenge.domain.usecaseImpl
 
-import com.example.codingchallenge.domain.repository.HL7Repository
+import com.example.codingchallenge.domain.repository.OBXReadStatusRepository
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import javax.inject.Inject
 
 class OBXReadStatusUseCaseImpl @Inject constructor(
-    private val repository: HL7Repository
+    private val repository: OBXReadStatusRepository
 ) : OBXReadStatusUseCase {
     override suspend fun markObxAsRead(obxId: Long, isRead: Boolean) {
         repository.markObxAsRead(obxId, isRead)
