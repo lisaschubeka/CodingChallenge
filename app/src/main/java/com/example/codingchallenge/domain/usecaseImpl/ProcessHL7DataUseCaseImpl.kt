@@ -9,6 +9,7 @@ import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegment
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegment
 import com.example.codingchallenge.domain.repository.HL7Repository
+import com.example.codingchallenge.domain.repository.OBXReadStatusRepository
 import com.example.codingchallenge.domain.usecase.CombineForHL7UIUseCase
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
@@ -18,7 +19,8 @@ import javax.inject.Inject
 class ProcessHL7DataUseCaseImpl @Inject constructor(
     private val segmentCreator: CreateSegmentUseCase,
     private val combineTestResultsUseCase: CombineForHL7UIUseCase,
-    private val hL7Repository: HL7Repository
+    private val hL7Repository: HL7Repository,
+    private val obxReadStatusRepository: OBXReadStatusRepository
 ) : ProcessHL7DataUseCase {
 
     private val TAG = "Hl7Parser"
@@ -92,10 +94,11 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
 
     override suspend fun clearDatabaseData() {
         hL7Repository.clearDatabase()
+        obxReadStatusRepository.clearDatabase()
     }
 
     override fun observeChangesForHL7File(): Flow<Pair<User, List<TestResult>>> {
-        val flowObxReadStatus = hL7Repository.observeOBXReadStatusFromDatabase()
+        val flowObxReadStatus = obxReadStatusRepository.observeOBXReadStatusFromDatabase()
         val flowHl7Data = hL7Repository.observeHL7FileData()
         return combineTestResultsUseCase.combineForHL7UIUpdates(
             flowHl7Data,

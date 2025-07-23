@@ -2,10 +2,7 @@
 package com.example.codingchallenge.data.repository
 
 import com.example.codingchallenge.app.AppDatabase
-import com.example.codingchallenge.data.model.ObxReadStatusEntity
-import com.example.codingchallenge.data.model.mapToDomain
 import com.example.codingchallenge.domain.model.HL7Data
-import com.example.codingchallenge.domain.model.ObxReadStatus
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
 import com.example.codingchallenge.domain.model.hl7Segment.NTESegmentEntity
@@ -15,29 +12,17 @@ import com.example.codingchallenge.domain.model.hl7Segment.mapToEntity
 import com.example.codingchallenge.domain.repository.HL7Repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class HL7RepositoryImpl @Inject constructor(
     private val database: AppDatabase
 ) : HL7Repository {
 
-    private val obxReadStatusDao = database.obxReadStatusDao()
 
     private val mshSegmentDao = database.mshSegmentDao()
     private val pidSegmentDao = database.pidSegmentDao()
     private val obxSegmentDao = database.obxSegmentDao()
     private val nteSegmentDao = database.nteSegmentDao()
-
-    override suspend fun markObxAsRead(obxId: Long, isRead: Boolean) {
-        val status = ObxReadStatusEntity(obxId = obxId, isRead = isRead)
-        obxReadStatusDao.insertObxReadStatus(status)
-    }
-
-    override suspend fun addObxIdsAsUnread(obxIds: List<Long>) {
-        val unreadStatuses = obxIds.map { ObxReadStatusEntity(obxId = it, isRead = false) }
-        obxReadStatusDao.insertAllObxAsUnread(unreadStatuses)
-    }
 
     override suspend fun saveHL7FileData(hl7Data: HL7Data) {
         database.runInTransaction {
@@ -100,14 +85,6 @@ class HL7RepositoryImpl @Inject constructor(
     override suspend fun clearDatabase() {
         // should cascade and delete all entries in database
         mshSegmentDao.deleteAll()
-
-        obxReadStatusDao.deleteAll()
-    }
-
-    override fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
-        return obxReadStatusDao.observeAllObxNotRead().map { obxReadStatusList ->
-            obxReadStatusList.map { obxReadStatusEntity -> obxReadStatusEntity.mapToDomain() }
-        }
     }
 
 }
