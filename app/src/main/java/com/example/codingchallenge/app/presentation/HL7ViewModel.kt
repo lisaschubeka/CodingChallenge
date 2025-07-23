@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
-import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -31,7 +30,6 @@ sealed interface LoadHL7FileEvent {
 @HiltViewModel
 class HL7ViewModel @Inject constructor(
     private val processHL7DataUseCase: ProcessHL7DataUseCase,
-    private val obxReadStatusUseCase: OBXReadStatusUseCase
 ) : ViewModel() {
 
     data class HL7UiState(
@@ -94,27 +92,21 @@ class HL7ViewModel @Inject constructor(
                     context, uri
                 )
 
-                processHL7DataUseCase.clearDatabaseData()
-                val hl7parsed = processHL7DataUseCase.parseToHL7DataObject(hl7Raw)
-
-                if (hl7parsed != null) {
-                    processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
-                    obxReadStatusUseCase.addObxIdsAsUnread(hl7parsed.obxSegmentList.map { it.setId })
-                } else {
-                    _events.send(LoadHL7FileEvent.ShowSnackbar("Failed to parse HL7 file."))
-                }
+                processHL7DataUseCase.loadFromFileAndSaveAndLoadFromDatabase(hl7Raw)
                 _events.send(LoadHL7FileEvent.ShowSnackbar("HL7 file parsed and saved successfully!"))
-                _uiState.update { it.copy(isLoading = false) }
 
             } catch (e: Exception) {
                 Log.w("FILE READING", "EXCEPTION: ${e.message}")
+                _events.send(LoadHL7FileEvent.ShowSnackbar("Failed to parse HL7 file."))
             }
+            _uiState.update { it.copy(isLoading = false) }
+
         }
     }
 
     fun markTestResultAsRead(id: Long) {
         viewModelScope.launch {
-            obxReadStatusUseCase.markObxAsRead(id, true)
+            processHL7DataUseCase.markObxAsRead(id, true)
         }
     }
 

@@ -14,4 +14,8 @@ interface ProcessHL7DataUseCase {
 
     suspend fun saveHL7DataToDatabase(hl7data: HL7Data)
     suspend fun clearDatabaseData()
+
+    suspend fun loadFromFileAndSaveAndLoadFromDatabase(hl7Raw: String)
+    suspend fun markObxAsRead(obxId: Long, isRead: Boolean)
+
 }

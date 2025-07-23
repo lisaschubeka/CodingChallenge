@@ -6,11 +6,9 @@ import com.example.codingchallenge.domain.repository.HL7Repository
 import com.example.codingchallenge.domain.repository.OBXReadStatusRepository
 import com.example.codingchallenge.domain.usecase.CombineForHL7UIUseCase
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
-import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import com.example.codingchallenge.domain.usecaseImpl.CombineTestResultsUseCaseImpl
 import com.example.codingchallenge.domain.usecaseImpl.CreateSegmentUseCaseImpl
-import com.example.codingchallenge.domain.usecaseImpl.OBXReadStatusUseCaseImpl
 import com.example.codingchallenge.domain.usecaseImpl.ProcessHL7DataUseCaseImpl
 import dagger.Binds
 import dagger.Module
@@ -35,11 +33,6 @@ abstract class hl7Module {
     abstract fun bindParseToTestResultsUseCase(
         impl: CombineTestResultsUseCaseImpl
     ): CombineForHL7UIUseCase
-
-    @Binds
-    abstract fun bindOBXReadStatusUseCase(
-        impl: OBXReadStatusUseCaseImpl
-    ): OBXReadStatusUseCase
 
     @Binds
     abstract fun bindOBXReadStatusRepository(

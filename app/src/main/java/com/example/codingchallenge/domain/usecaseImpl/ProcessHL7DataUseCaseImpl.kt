@@ -97,6 +97,21 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
         obxReadStatusRepository.clearDatabase()
     }
 
+    override suspend fun loadFromFileAndSaveAndLoadFromDatabase(hl7Raw: String) {
+        try {
+            clearDatabaseData()
+            val hl7parsed = parseToHL7DataObject(hl7Raw)
+
+            if (hl7parsed != null) {
+                saveHL7DataToDatabase(hl7parsed)
+                obxReadStatusRepository.addObxIdsAsUnread(hl7parsed.obxSegmentList.map { it.setId })
+            }
+
+        } catch (e: Exception) {
+            Log.w("FILE READING", "EXCEPTION: ${e.message}")
+        }
+    }
+
     override fun observeChangesForHL7File(): Flow<Pair<User, List<TestResult>>> {
         val flowObxReadStatus = obxReadStatusRepository.observeOBXReadStatusFromDatabase()
         val flowHl7Data = hL7Repository.observeHL7FileData()
@@ -104,6 +119,10 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
             flowHl7Data,
             flowObxReadStatus,
         )
+    }
+
+    override suspend fun markObxAsRead(obxId: Long, isRead: Boolean) {
+        obxReadStatusRepository.markObxAsRead(obxId, isRead)
     }
 
 
