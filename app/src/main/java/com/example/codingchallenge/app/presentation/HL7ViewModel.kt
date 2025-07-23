@@ -10,10 +10,12 @@ import com.example.codingchallenge.domain.model.User
 import com.example.codingchallenge.domain.usecase.OBXReadStatusUseCase
 import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -22,6 +24,9 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
 
+sealed interface LoadHL7FileEvent {
+    data class ShowSnackbar(val message: String) : LoadHL7FileEvent
+}
 
 @HiltViewModel
 class HL7ViewModel @Inject constructor(
@@ -37,6 +42,9 @@ class HL7ViewModel @Inject constructor(
 
     private val _uiState: MutableStateFlow<HL7UiState> = MutableStateFlow(HL7UiState())
     val uiState: StateFlow<HL7UiState> = _uiState.asStateFlow()
+
+    private val _events = Channel<LoadHL7FileEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
 
     init {
         loadFromDatabase()
@@ -56,6 +64,7 @@ class HL7ViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                _events.send(LoadHL7FileEvent.ShowSnackbar("Failed to update with an exception."))
                 Log.w("FILE READING: exception: ", e.message.toString())
             }
         }
@@ -91,7 +100,10 @@ class HL7ViewModel @Inject constructor(
                 if (hl7parsed != null) {
                     processHL7DataUseCase.saveHL7DataToDatabase(hl7parsed)
                     obxReadStatusUseCase.addObxIdsAsUnread(hl7parsed.obxSegmentList.map { it.setId })
+                } else {
+                    _events.send(LoadHL7FileEvent.ShowSnackbar("Failed to parse HL7 file."))
                 }
+                _events.send(LoadHL7FileEvent.ShowSnackbar("HL7 file parsed and saved successfully!"))
                 _uiState.update { it.copy(isLoading = false) }
 
             } catch (e: Exception) {

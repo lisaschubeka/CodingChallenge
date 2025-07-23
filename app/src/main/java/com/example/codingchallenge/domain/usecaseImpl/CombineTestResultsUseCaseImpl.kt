@@ -19,6 +19,7 @@ class CombineTestResultsUseCaseImpl @Inject constructor() : CombineForHL7UIUseCa
         nteList: List<NTESegment>?,
         isRead: Boolean
     ): TestResult {
+
         val id = obxSegment.setId
         val testName = obxSegment.observationIdentifier?.split("^")?.get(1) ?: ""
         val value = obxSegment.observationValue ?: ""
