@@ -1,6 +1,7 @@
 package com.example.codingchallenge.domain.model.hl7Segment
 
 data class NTESegment(
+    val obxId: Long,
     // NTE.1 - Set ID - NTE (SI)
     val setId: Long,
 

@@ -1,28 +1,32 @@
-package com.example.codingchallenge.domain.model.hl7Segment
+package com.example.codingchallenge.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.codingchallenge.domain.model.hl7Segment.NTESegment
+import com.example.codingchallenge.domain.model.hl7Segment.OBXSegmentEntity
 
 @Entity(
     tableName = "nte_segments",
     foreignKeys = [ForeignKey(
         entity = OBXSegmentEntity::class,
-        parentColumns = ["set_id"],
+        parentColumns = ["obxId"], // new primary key
         childColumns = ["obx_id"],
         onDelete = ForeignKey.CASCADE
-    )]
+    )],
+    indices = [Index(value = ["obx_id", "set_id"], unique = true)]
 )
 data class NTESegmentEntity(
+    @PrimaryKey(autoGenerate = true)
+    val nteId: Long = 0,
 
-    @ColumnInfo(name = "obx_id")
+    @ColumnInfo(name = "obx_id") // Foreign key to OBXSegmentEntity's obxId
     val obxId: Long,
 
     @ColumnInfo(name = "set_id")
-    @PrimaryKey
-    val setId: Long,
-
+    val setId: Long, // The set_id from the HL7 message (not primary key)
     // NTE.2 - Source of Comment (ID)
     @ColumnInfo(name = "source_of_comment")
     val sourceOfComment: String?,
@@ -39,6 +43,7 @@ data class NTESegmentEntity(
 
 fun NTESegmentEntity.mapToDomain(): NTESegment {
     return NTESegment(
+        obxId = this.obxId,
         setId = this.setId,
         sourceOfComment = this.sourceOfComment,
         comment = this.comment,
@@ -46,10 +51,10 @@ fun NTESegmentEntity.mapToDomain(): NTESegment {
     )
 }
 
-fun NTESegment.mapToEntity(obxId: Long): NTESegmentEntity {
+fun NTESegment.mapToEntity(): NTESegmentEntity {
     return NTESegmentEntity(
         setId = this.setId,
-        obxId = obxId,
+        obxId = this.obxId,
         sourceOfComment = this.sourceOfComment,
         comment = this.comment,
         commentType = this.commentType,

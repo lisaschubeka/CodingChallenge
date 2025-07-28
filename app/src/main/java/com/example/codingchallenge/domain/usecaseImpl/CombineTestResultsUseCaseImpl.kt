@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
-class CombineTestResultsUseCaseImpl @Inject constructor() : CombineForHL7UIUseCase {
+class CombineForHL7UIUseCaseImpl @Inject constructor() : CombineForHL7UIUseCase {
     override fun convertObxSegmentToTestResult(
         obxSegment: OBXSegment,
         nteList: List<NTESegment>?,
@@ -30,28 +30,56 @@ class CombineTestResultsUseCaseImpl @Inject constructor() : CombineForHL7UIUseCa
         return TestResult(id, testName, value, unit, range, note, isRead)
     }
 
+    // TODO both inputs would be a list of lists
     override fun combineForHL7UIUpdates(
-        flowHL7Data: Flow<HL7Data>,
+        flowHL7Data: Flow<List<HL7Data>>,
         flowReadStatus: Flow<List<ObxReadStatus>>
-    ): Flow<Pair<User, List<TestResult>>> {
-        return flowHL7Data.combine(flowReadStatus) { hL7Data, listReadStatus ->
-            val listTestResults = mutableListOf<TestResult>()
-            val mapReadStatus = listReadStatus.associateBy { it.obxId }
+    ): Flow<List<Pair<User, List<TestResult>>>> {
+        // based on the obxId in each HL7data, map to read status
 
-            for (obxSegment in hL7Data.obxSegmentList) {
-                val matchingReadStatus = mapReadStatus[obxSegment.setId]
-                if (matchingReadStatus != null) {
-                    listTestResults.add(
-                        convertObxSegmentToTestResult(
-                            obxSegment,
-                            hL7Data.nteMap[obxSegment.setId],
-                            matchingReadStatus.isRead
+        return flowHL7Data.combine(flowReadStatus) { hl7DataList, listReadStatusList ->
+            val listOfHL7FileData: MutableList<Pair<User, List<TestResult>>> = mutableListOf()
+
+            for (hl7Data in hl7DataList) {
+                val user: User = mapToUser(hl7Data.pid, hl7Data.msh)
+
+                val listTestResults = mutableListOf<TestResult>()
+                val mapReadStatus = listReadStatusList.associateBy { it.obxId }
+                for (obxSegment in hl7Data.obxSegmentList) {
+                    val matchingReadStatus = mapReadStatus[obxSegment.setId]
+                    if (matchingReadStatus != null) {
+                        listTestResults.add(
+                            convertObxSegmentToTestResult(
+                                obxSegment,
+                                hl7Data.nteMap[obxSegment.setId],
+                                matchingReadStatus.isRead
+                            )
                         )
-                    )
+                    }
                 }
+                listOfHL7FileData.add(Pair(user, listTestResults))
             }
-            Pair(mapToUser(hL7Data.pid, hL7Data.msh), listTestResults)
+            listOfHL7FileData
         }
+
+//        return flowHL7Data.combine(flowReadStatus) { hL7Data, listReadStatus ->
+//            val listTestResults = mutableListOf<TestResult>()
+//            val mapReadStatus = listReadStatus.associateBy { it.obxId }
+//
+//            for (obxSegment in hL7Data.obxSegmentList) {
+//                val matchingReadStatus = mapReadStatus[obxSegment.setId]
+//                if (matchingReadStatus != null) {
+//                    listTestResults.add(
+//                        convertObxSegmentToTestResult(
+//                            obxSegment,
+//                            hL7Data.nteMap[obxSegment.setId],
+//                            matchingReadStatus.isRead
+//                        )
+//                    )
+//                }
+//            }
+//            Pair(mapToUser(hL7Data.pid, hL7Data.msh), listTestResults)
+//        }
     }
 
     override fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {

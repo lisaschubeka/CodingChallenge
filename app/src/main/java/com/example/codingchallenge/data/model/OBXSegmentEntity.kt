@@ -3,27 +3,29 @@ package com.example.codingchallenge.domain.model.hl7Segment
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "obx_segments",
     foreignKeys = [ForeignKey(
         entity = MSHSegmentEntity::class,
-        parentColumns = ["id"],
+        parentColumns = ["mshId"],
         childColumns = ["msh_id"],
         onDelete = ForeignKey.CASCADE
-    )]
+    )],
+    indices = [Index(value = ["msh_id", "set_id"], unique = true)]
 )
 
 data class OBXSegmentEntity(
-    // OBX.1 - Set ID - OBX (SI)
-    @PrimaryKey
-    @ColumnInfo(name = "set_id")
-    val setId: Long,
+    @PrimaryKey(autoGenerate = true)
+    val obxId: Long = 0,
 
-    // Foreign key reference
-    @ColumnInfo(name = "msh_id", index = true)
+    @ColumnInfo(name = "msh_id") // Foreign key to MSHSegmentEntity
     val mshId: Long,
+
+    @ColumnInfo(name = "set_id")
+    val setId: Long, // The set_id from the HL7 message (not primary key)
 
     // OBX.2 - Value Type (ID)
     @ColumnInfo(name = "value_type")
@@ -104,6 +106,7 @@ data class OBXSegmentEntity(
 fun OBXSegmentEntity.mapToDomain(): OBXSegment {
     return OBXSegment(
         setId = this.setId,
+        mshId = mshId,
         valueType = this.valueType,
         observationIdentifier = this.observationIdentifier,
         observationSubID = this.observationSubID,
@@ -125,11 +128,11 @@ fun OBXSegmentEntity.mapToDomain(): OBXSegment {
     )
 }
 
-fun OBXSegment.mapToEntity(mshId: Long): OBXSegmentEntity {
+fun OBXSegment.mapToEntity(): OBXSegmentEntity {
 
     return OBXSegmentEntity(
         setId = this.setId,
-        mshId = mshId,
+        mshId = this.mshId,
         valueType = this.valueType,
         observationIdentifier = this.observationIdentifier,
         observationSubID = this.observationSubID,

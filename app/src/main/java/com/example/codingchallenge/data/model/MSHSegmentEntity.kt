@@ -10,8 +10,8 @@ data class MSHSegmentEntity(
 
     // Useful if there are more MSHSegments from users in the future
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-
+    val mshId: Long = 0,
+    
     // MSH.1 - Field Separator (ST) - Required in HL7, but String? here
     @ColumnInfo(name = "field_separator") // Custom column name for database
     val fieldSeparator: String?,

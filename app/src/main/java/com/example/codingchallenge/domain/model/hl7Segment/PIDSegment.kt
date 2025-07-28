@@ -1,6 +1,7 @@
 package com.example.codingchallenge.domain.model.hl7Segment
 
 data class PIDSegment(
+    val mshId: Long,
     // PID.1 - Set ID - PID (SI)
     val setId: Long,
 

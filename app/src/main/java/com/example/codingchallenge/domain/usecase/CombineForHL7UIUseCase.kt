@@ -18,9 +18,9 @@ interface CombineForHL7UIUseCase {
     ): TestResult
 
     fun combineForHL7UIUpdates(
-        flowHL7Data: Flow<HL7Data>,
+        flowHL7Data: Flow<List<HL7Data>>,
         flowReadStatus: Flow<List<ObxReadStatus>>,
-    ): Flow<Pair<User, List<TestResult>>>
+    ): Flow<List<Pair<User, List<TestResult>>>>
 
     fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User
 

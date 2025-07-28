@@ -1,21 +1,16 @@
 package com.example.codingchallenge.domain.usecase
 
-import com.example.codingchallenge.domain.model.HL7Data
 import com.example.codingchallenge.domain.model.TestResult
 import com.example.codingchallenge.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 // Top level use case used by HL7ViewModel
 interface ProcessHL7DataUseCase {
-    fun parseToHL7DataObject(hl7Raw: String): HL7Data?
 
     fun observeChangesForHL7File(
-    ): Flow<Pair<User, List<TestResult>>>
+    ): Flow<List<Pair<User, List<TestResult>>>>
 
-    suspend fun saveHL7DataToDatabase(hl7data: HL7Data)
-    suspend fun clearDatabaseData()
-
-    suspend fun loadFromFileAndSaveAndLoadFromDatabase(hl7Raw: String)
+    suspend fun parseAndSaveHL7FileToDatabase(hl7Raw: String)
     suspend fun markObxAsRead(obxId: Long, isRead: Boolean)
 
 }

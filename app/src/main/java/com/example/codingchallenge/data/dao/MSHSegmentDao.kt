@@ -14,6 +14,6 @@ interface MSHSegmentDao {
     @Query("DELETE FROM msh_segments")
     suspend fun deleteAll(): Int
 
-    @Query("SELECT * FROM msh_segments ORDER BY id DESC LIMIT 1")
-    fun observeMshSegment(): Flow<MSHSegmentEntity?>
+    @Query("SELECT * FROM msh_segments")
+    fun observeAllMshSegments(): Flow<List<MSHSegmentEntity>>
 }

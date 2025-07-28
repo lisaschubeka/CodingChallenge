@@ -32,14 +32,19 @@ class HL7ViewModel @Inject constructor(
     private val processHL7DataUseCase: ProcessHL7DataUseCase,
 ) : ViewModel() {
 
-    data class HL7UiState(
-        val isLoading: Boolean = true,
+    data class HL7FileUIState(
         val user: User = User("", "", ""),
         val testResults: List<TestResult> = emptyList(),
     )
 
-    private val _uiState: MutableStateFlow<HL7UiState> = MutableStateFlow(HL7UiState())
-    val uiState: StateFlow<HL7UiState> = _uiState.asStateFlow()
+    data class HL7FileListUiState(
+        val isLoading: Boolean = true,
+        val HL7FilesList: List<HL7FileUIState> = emptyList()
+    )
+
+    private val _uiState: MutableStateFlow<HL7FileListUiState> =
+        MutableStateFlow(HL7FileListUiState())
+    val uiState: StateFlow<HL7FileListUiState> = _uiState.asStateFlow()
 
     private val _events = Channel<LoadHL7FileEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
@@ -51,13 +56,15 @@ class HL7ViewModel @Inject constructor(
     private fun loadFromDatabase() {
         viewModelScope.launch {
             try {
+                // todo THESE WILL be combined into a list
                 val flowHL7FileUpdates = processHL7DataUseCase.observeChangesForHL7File()
-                flowHL7FileUpdates.collectLatest { HL7FileUpdates ->
+                flowHL7FileUpdates.collectLatest { HL7FileListUpdates ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            user = HL7FileUpdates.first,
-                            testResults = HL7FileUpdates.second
+                            HL7FilesList = HL7FileListUpdates.map { hl7FilePair ->
+                                HL7FileUIState(hl7FilePair.first, hl7FilePair.second)
+                            }
                         )
                     }
                 }
@@ -91,8 +98,8 @@ class HL7ViewModel @Inject constructor(
                 val hl7Raw = readFromHL7File(
                     context, uri
                 )
-
-                processHL7DataUseCase.loadFromFileAndSaveAndLoadFromDatabase(hl7Raw)
+                // TODO might be good to return the msh id for reference
+                processHL7DataUseCase.parseAndSaveHL7FileToDatabase(hl7Raw)
                 _events.send(LoadHL7FileEvent.ShowSnackbar("HL7 file parsed and saved successfully!"))
 
             } catch (e: Exception) {

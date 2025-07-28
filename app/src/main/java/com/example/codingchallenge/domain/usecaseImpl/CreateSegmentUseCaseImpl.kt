@@ -34,8 +34,9 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
         )
     }
 
-    override fun createPIDSegment(stringSegment: List<String>): PIDSegment {
+    override fun createPIDSegment(stringSegment: List<String>, mshId: Long): PIDSegment {
         return PIDSegment(
+            mshId = mshId,
             setId = stringSegment[0].toLong(),                            // PID.1
             patientID = stringSegment.getOrNull(1),                 // PID.2
             patientIdentifierList = stringSegment.getOrNull(2),     // PID.3
@@ -73,12 +74,13 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
             speciesCode = stringSegment.getOrNull(34),              // PID.35
             breedCode = stringSegment.getOrNull(35),                // PID.36
             strain = stringSegment.getOrNull(36),                   // PID.37
-            productionClassCode = stringSegment.getOrNull(37)       // PID.38
+            productionClassCode = stringSegment.getOrNull(37)
         )
     }
 
-    override fun createOBXSegment(stringSegment: List<String>): OBXSegment {
+    override fun createOBXSegment(stringSegment: List<String>, mshId: Long): OBXSegment {
         return OBXSegment(
+            mshId = mshId,
             setId = stringSegment[0].toLong(),                     // OBX.1
             valueType = stringSegment.getOrNull(1),                 // OBX.2
             observationIdentifier = stringSegment.getOrNull(2),     // OBX.3
@@ -97,16 +99,17 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
             responsibleObserver = stringSegment.getOrNull(15),      // OBX.16
             observationMethod = stringSegment.getOrNull(16),        // OBX.17
             equipmentInstanceIdentifier = stringSegment.getOrNull(17), // OBX.18
-            dateTimeOfTheAnalysis = stringSegment.getOrNull(18)     // OBX.19
+            dateTimeOfTheAnalysis = stringSegment.getOrNull(18),
         )
     }
 
-    override fun createNTESegment(stringSegment: List<String>): NTESegment {
+    override fun createNTESegment(stringSegment: List<String>, obxId: Long): NTESegment {
         return NTESegment(
+            obxId = obxId,
             setId = stringSegment[0].toLong(),          // NTE.1
             sourceOfComment = stringSegment.getOrNull(1), // NTE.2
             comment = stringSegment.getOrNull(2),        // NTE.3
-            commentType = stringSegment.getOrNull(3)     // NTE.4
+            commentType = stringSegment.getOrNull(3),
         )
     }
 }

@@ -24,6 +24,16 @@ class OBXReadStatusRepositoryImpl @Inject constructor(
         obxReadStatusDao.insertAllObxAsUnread(unreadStatuses)
     }
 
+    override suspend fun addObxReadStatusAsUnread(obxId: Long) {
+        obxReadStatusDao.insertObxReadStatus(
+            status = ObxReadStatusEntity(
+                obxId = obxId,
+                isRead = false
+            )
+        )
+    }
+
+
     override fun observeOBXReadStatusFromDatabase(): Flow<List<ObxReadStatus>> {
         return obxReadStatusDao.observeAllObxNotRead().map { obxReadStatusList ->
             obxReadStatusList.map { obxReadStatusEntity -> obxReadStatusEntity.mapToDomain() }
