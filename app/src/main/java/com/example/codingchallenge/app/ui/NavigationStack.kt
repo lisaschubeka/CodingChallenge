@@ -18,7 +18,12 @@ fun NavigationStack() {
     NavHost(navController = navController, startDestination = Screen.Overview) {
         composable<Screen.Overview> {
             val overviewViewModel: OverviewViewModel = hiltViewModel()
-            HL7FileOverview(navController = navController, overviewViewModel)
+            HL7FileOverview(
+                overviewViewModel,
+                onNavigateToList = { id ->
+                    navController.navigate(Screen.Detail(mshId = id))
+                }
+            )
         }
 
 
@@ -30,7 +35,8 @@ fun NavigationStack() {
             HL7DetailScreen(
                 navController = navController,
                 viewModel = detailViewModel,
-                mshId = mshId
+                mshId = mshId,
+                onNavigateBack = navController::popBackStack
             )
         }
     }

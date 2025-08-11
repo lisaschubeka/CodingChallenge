@@ -30,14 +30,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.codingchallenge.Screen
 import com.example.codingchallenge.app.presentation.LoadHL7FileEvent
 import com.example.codingchallenge.app.presentation.OverviewViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun HL7FileOverview(navController: NavController, viewModel: OverviewViewModel) {
+fun HL7FileOverview(
+    viewModel: OverviewViewModel,
+    onNavigateToList: (id: Long) -> Unit
+) {
 
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -92,7 +93,7 @@ fun HL7FileOverview(navController: NavController, viewModel: OverviewViewModel) 
                             OverviewFileCard(
                                 overviewFileData = overviewFileData,
                                 onCardClick = {
-                                    navController.navigate(Screen.Detail(mshId = overviewFileData.mshId))
+                                    onNavigateToList(overviewFileData.mshId)
                                 }
                             )
                             Spacer(modifier = Modifier.height(8.dp))

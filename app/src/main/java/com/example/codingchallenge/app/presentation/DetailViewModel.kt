@@ -41,11 +41,10 @@ class DetailViewModel @Inject constructor(
     private val _events = Channel<LoadHL7FileEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    // TODO this needs to be called when we go to a new detail view
-    fun loadFile(msgId: Long) {
+    fun loadFile(mshId: Long) {
         viewModelScope.launch {
             try {
-                val flowHL7FileUpdates = observeFileUseCase.observeChangesForHL7File(msgId)
+                val flowHL7FileUpdates = observeFileUseCase.observeChangesForHL7File(mshId)
                 flowHL7FileUpdates.collectLatest { fileUpdates ->
                     _uiState.update {
                         it.copy(

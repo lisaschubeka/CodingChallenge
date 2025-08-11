@@ -45,7 +45,7 @@ class ObserveFileUseCaseImpl @Inject constructor(
         )
     }
 
-    override fun combineForDetailView(
+    private fun combineForDetailView(
         flowHL7Data: Flow<HL7DataEntity>, flowReadStatus: Flow<List<ObxReadStatus>>
     ): Flow<Pair<User, List<TestResult>>> {
 

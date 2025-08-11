@@ -84,9 +84,7 @@ class OverviewViewModel @Inject constructor(
                 val hl7Raw = readFromHL7File(
                     context, uri
                 )
-                // TODO might be good to return the msh id for reference
                 processHL7DataUseCase.parseAndSaveHL7FileToDatabase(hl7Raw)
-                Log.w("FILE READING", "PARSED AND SAVED")
 
                 _events.send(LoadHL7FileEvent.ShowSnackbar("HL7 file parsed and saved successfully!"))
 

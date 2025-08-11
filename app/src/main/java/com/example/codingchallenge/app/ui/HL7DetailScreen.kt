@@ -26,7 +26,10 @@ import kotlinx.coroutines.flow.collectLatest
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HL7DetailScreen(navController: NavController, viewModel: DetailViewModel, mshId: Long) {
+fun HL7DetailScreen(
+    navController: NavController, viewModel: DetailViewModel, mshId: Long,
+    onNavigateBack: () -> Unit
+) {
 
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -67,8 +70,6 @@ fun HL7DetailScreen(navController: NavController, viewModel: DetailViewModel, ms
                             .fillMaxWidth()
                             .padding(top = 8.dp)
                     ) {
-                        // TODO should be ${testResults.size}, there is a bug here yet to be fixed.
-                        // TODO The bug is that there are (actual testResults + 1) in viewModel.notReadResults
                         items(uiState.testResults) { result ->
                             result.value.toFloatOrNull()?.let {
                                 TestResultCard(
