@@ -5,9 +5,8 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.codingchallenge.domain.model.TestResult
-import com.example.codingchallenge.domain.model.User
-import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
+import com.example.codingchallenge.domain.model.OverviewFileData
+import com.example.codingchallenge.domain.usecase.ObserveFileOverviewListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,27 +18,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Locale
 import javax.inject.Inject
 
-sealed interface LoadHL7FileEvent {
-    data class ShowSnackbar(val message: String) : LoadHL7FileEvent
-}
-
 @HiltViewModel
-class HL7ViewModel @Inject constructor(
-    private val processHL7DataUseCase: ProcessHL7DataUseCase,
+class OverviewViewModel @Inject constructor(
+    private val processHL7DataUseCase: ObserveFileOverviewListUseCase,
 ) : ViewModel() {
-
-    data class HL7FileUIState(
-        val user: User = User("", "", ""),
-        val testResults: List<TestResult> = emptyList(),
-    )
 
     data class HL7FileListUiState(
         val isLoading: Boolean = true,
-        val HL7FilesList: List<HL7FileUIState> = emptyList()
+        val overviewFileDataList: List<OverviewFileData> = emptyList()
     )
 
     private val _uiState: MutableStateFlow<HL7FileListUiState> =
@@ -50,21 +38,18 @@ class HL7ViewModel @Inject constructor(
     val events = _events.receiveAsFlow()
 
     init {
-        loadFromDatabase()
+        loadOverviewFromDatabase()
     }
 
-    private fun loadFromDatabase() {
+    private fun loadOverviewFromDatabase() {
         viewModelScope.launch {
             try {
-                // todo THESE WILL be combined into a list
-                val flowHL7FileUpdates = processHL7DataUseCase.observeChangesForHL7File()
-                flowHL7FileUpdates.collectLatest { HL7FileListUpdates ->
+                val flowHL7FileUpdates = processHL7DataUseCase.observeChangesForOverview()
+                flowHL7FileUpdates.collectLatest { overviewUpdates ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            HL7FilesList = HL7FileListUpdates.map { hl7FilePair ->
-                                HL7FileUIState(hl7FilePair.first, hl7FilePair.second)
-                            }
+                            overviewFileDataList = overviewUpdates
                         )
                     }
                 }
@@ -100,6 +85,8 @@ class HL7ViewModel @Inject constructor(
                 )
                 // TODO might be good to return the msh id for reference
                 processHL7DataUseCase.parseAndSaveHL7FileToDatabase(hl7Raw)
+                Log.w("FILE READING", "PARSED AND SAVED")
+
                 _events.send(LoadHL7FileEvent.ShowSnackbar("HL7 file parsed and saved successfully!"))
 
             } catch (e: Exception) {
@@ -108,45 +95,6 @@ class HL7ViewModel @Inject constructor(
             }
             _uiState.update { it.copy(isLoading = false) }
 
-        }
-    }
-
-    fun markTestResultAsRead(id: Long) {
-        viewModelScope.launch {
-            processHL7DataUseCase.markObxAsRead(id, true)
-        }
-    }
-
-    fun parseRange(range: String?): Pair<Float?, Float?> {
-        val trimmed = range?.trim() ?: ""
-
-        return when {
-            trimmed.startsWith("<") -> {
-                val upper = trimmed.removePrefix("<").trim().toFloatOrNull()
-                Pair(null, upper)
-            }
-
-            trimmed.contains("-") -> {
-                val parts = trimmed.split("-").map { it.trim() }
-                val low = parts.getOrNull(0)?.toFloatOrNull()
-                val high = parts.getOrNull(1)?.toFloatOrNull()
-                Pair(low, high)
-            }
-
-            else -> Pair(null, null)
-        }
-    }
-
-    fun formatBirthday(dateString: String): String {
-        val inputFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("d.M.yyyy", Locale.GERMAN)
-
-        try {
-            val date = inputFormat.parse(dateString)
-            return date?.let { outputFormat.format(it) } ?: ""
-        } catch (e: Exception) {
-            println("Error formatting birthday: ${e.message}")
-            return dateString
         }
     }
 }

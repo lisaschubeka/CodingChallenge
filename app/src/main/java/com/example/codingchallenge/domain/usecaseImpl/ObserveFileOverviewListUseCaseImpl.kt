@@ -1,49 +1,67 @@
 package com.example.codingchallenge.domain.usecaseImpl
 
 import android.util.Log
-import com.example.codingchallenge.domain.model.TestResult
-import com.example.codingchallenge.domain.model.User
-import com.example.codingchallenge.domain.repository.HL7Repository
+import com.example.codingchallenge.domain.model.OverviewFileData
+import com.example.codingchallenge.domain.repository.FileRepository
 import com.example.codingchallenge.domain.repository.OBXReadStatusRepository
-import com.example.codingchallenge.domain.usecase.CombineForHL7UIUseCase
 import com.example.codingchallenge.domain.usecase.CreateSegmentUseCase
-import com.example.codingchallenge.domain.usecase.ProcessHL7DataUseCase
+import com.example.codingchallenge.domain.usecase.ObserveFileOverviewListUseCase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.transform
 import javax.inject.Inject
 
-class ProcessHL7DataUseCaseImpl @Inject constructor(
+class ObserveFileOverviewListUseCaseImpl @Inject constructor(
     private val segmentCreator: CreateSegmentUseCase,
-    private val combineTestResultsUseCase: CombineForHL7UIUseCase,
-    private val hL7Repository: HL7Repository,
+    private val fileRepository: FileRepository,
     private val obxReadStatusRepository: OBXReadStatusRepository
-) : ProcessHL7DataUseCase {
+) : ObserveFileOverviewListUseCase {
 
     private val TAG = "Hl7Parser"
     private var fieldDelimiter: Char = '|'
 
     override suspend fun parseAndSaveHL7FileToDatabase(hl7Raw: String) {
+        Log.w("FILE READING", "1. just entered parseandsave")
+
         val mshSegmentString = hl7Raw.split('\r', '\n').filter { it.isNotBlank() }[0]
         if (mshSegmentString.isEmpty()) {
             return
         }
         val mshFields = mshSegmentString.split(fieldDelimiter).toMutableList()
         val mshSegment = segmentCreator.createMSHSegment(stringSegment = mshFields)
+        var mshId = 1L
+        try {
+            mshId = fileRepository.saveMSHSegment(mshSegment)
 
-        val mshId = hL7Repository.saveMSHSegment(mshSegment)
+        } catch (e: Exception) {
+            mshId = 1
+            Log.w("FILE READING", e.toString())
+        }
 
         val pidSegmentString = hl7Raw.split('\r', '\n').filter { it.isNotBlank() }[1]
         if (pidSegmentString.isEmpty()) {
             return
         }
-        val pidFields = pidSegmentString.split(fieldDelimiter).toMutableList()
+        Log.w("FILE READING", "2. after pid")
+
+        val pidFields =
+            pidSegmentString.split(fieldDelimiter).toMutableList()
+        try {
+            val pidSegment =
+                segmentCreator.createPIDSegment(stringSegment = pidFields, mshId = mshId)
+
+        } catch (e: Exception) {
+            Log.w("FILE READING", e.toString())
+        }
         val pidSegment = segmentCreator.createPIDSegment(stringSegment = pidFields, mshId = mshId)
 
-        hL7Repository.savePIDSegment(pidSegment)
+        fileRepository.savePIDSegment(pidSegment)
 
         val segments = hl7Raw.split('\r', '\n').filter { it.isNotBlank() }
         if (segments.isEmpty()) {
             return
         }
+        Log.w("FILE READING", "3. after pid")
+
 
         var obxId = -1L
         for (segmentString in segments) {
@@ -61,7 +79,7 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
                     segmentCreator.createOBXSegment(stringSegment = fields, mshId = mshId)
                 if (!obxSegment.referencesRange.isNullOrBlank() && obxSegment.observationValue != "!!Storno") {
                     obxSegment.referencesRange.let { Log.w(TAG, it) }
-                    obxId = hL7Repository.saveOBXSegment(obxSegment = obxSegment)
+                    obxId = fileRepository.saveOBXSegment(obxSegment = obxSegment)
                 }
             }
             // if obxNr is -1, then it is unclear where the NTE segment belongs to and
@@ -69,7 +87,7 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
             else if (segmentName == "NTE" && obxId != -1L) {
                 val nteSegment =
                     segmentCreator.createNTESegment(stringSegment = fields, obxId = obxId)
-                hL7Repository.saveNTESegment(nteSegment)
+                fileRepository.saveNTESegment(nteSegment)
                 obxReadStatusRepository.addObxReadStatusAsUnread(obxId)
             }
 
@@ -77,20 +95,20 @@ class ProcessHL7DataUseCaseImpl @Inject constructor(
 
     }
 
-    // TODO change this so combine
-    // TODO HOW TO AGGREGATE OBX READ STATUSES??
-    override fun observeChangesForHL7File(): Flow<List<Pair<User, List<TestResult>>>> {
-        val flowObxReadStatus = obxReadStatusRepository.observeOBXReadStatusFromDatabase()
-        val flowHl7Data = hL7Repository.observeHL7FileData()
-        return combineTestResultsUseCase.combineForHL7UIUpdates(
-            flowHl7Data,
-            flowObxReadStatus,
-        )
+    override fun observeChangesForOverview(): Flow<List<OverviewFileData>> {
+        return fileRepository.observeOverviewFileData().transform { segmentList ->
+            val transformedList = segmentList.map { segment ->
+                val name = segment.pidSegmentEntity.patientName?.split("^")?.get(1) ?: "Unknown"
+                val diaryNumber = segment.mshSegmentEntity.receivingFacility ?: "Unknown"
+                val obxSegmentList = segment.obxSegmentEntityList.size
+                OverviewFileData(
+                    segment.mshSegmentEntity.mshId,
+                    name,
+                    diaryNumber,
+                    obxSegmentList
+                )
+            }
+            emit(transformedList)
+        }
     }
-
-    override suspend fun markObxAsRead(obxId: Long, isRead: Boolean) {
-        obxReadStatusRepository.markObxAsRead(obxId, isRead)
-    }
-
-
 }

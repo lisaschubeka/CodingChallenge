@@ -11,6 +11,6 @@ interface PIDSegmentDao {
     @Insert
     suspend fun insertPIDSegmentEntity(segment: PIDSegmentEntity): Long
 
-    @Query("SELECT * FROM pid_segments")
-    fun observeAllPidSegments(): Flow<List<PIDSegmentEntity>>
+    @Query("SELECT * FROM pid_segments WHERE pidId = :pidId LIMIT 1")
+    fun observePidSegment(pidId: Long): Flow<PIDSegmentEntity>
 }

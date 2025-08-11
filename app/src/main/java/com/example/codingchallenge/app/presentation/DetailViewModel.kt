@@ -1,0 +1,103 @@
+package com.example.codingchallenge.app.presentation
+
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.codingchallenge.domain.model.TestResult
+import com.example.codingchallenge.domain.model.User
+import com.example.codingchallenge.domain.usecase.ObserveFileUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
+import javax.inject.Inject
+
+sealed interface LoadHL7FileEvent {
+    data class ShowSnackbar(val message: String) : LoadHL7FileEvent
+}
+
+@HiltViewModel
+class DetailViewModel @Inject constructor(
+    private val observeFileUseCase: ObserveFileUseCase,
+) : ViewModel() {
+
+    data class HL7FileUIState(
+        val isLoading: Boolean = true,
+        val user: User = User("", "", ""),
+        val testResults: List<TestResult> = emptyList(),
+    )
+
+    private val _uiState: MutableStateFlow<HL7FileUIState> =
+        MutableStateFlow(HL7FileUIState())
+    val uiState: StateFlow<HL7FileUIState> = _uiState.asStateFlow()
+
+    private val _events = Channel<LoadHL7FileEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
+
+    // TODO this needs to be called when we go to a new detail view
+    private fun loadFile(msgId: Long) {
+        viewModelScope.launch {
+            try {
+                val flowHL7FileUpdates = observeFileUseCase.observeChangesForHL7File(msgId)
+                flowHL7FileUpdates.collectLatest { fileUpdates ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            user = fileUpdates.first,
+                            testResults = fileUpdates.second
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _events.send(LoadHL7FileEvent.ShowSnackbar("Failed to update with an exception."))
+                Log.w("FILE READING: exception: ", e.message.toString())
+            }
+        }
+    }
+
+    fun markTestResultAsRead(id: Long) {
+        viewModelScope.launch {
+            observeFileUseCase.markObxAsRead(id, true)
+        }
+    }
+
+    fun parseRange(range: String?): Pair<Float?, Float?> {
+        val trimmed = range?.trim() ?: ""
+
+        return when {
+            trimmed.startsWith("<") -> {
+                val upper = trimmed.removePrefix("<").trim().toFloatOrNull()
+                Pair(null, upper)
+            }
+
+            trimmed.contains("-") -> {
+                val parts = trimmed.split("-").map { it.trim() }
+                val low = parts.getOrNull(0)?.toFloatOrNull()
+                val high = parts.getOrNull(1)?.toFloatOrNull()
+                Pair(low, high)
+            }
+
+            else -> Pair(null, null)
+        }
+    }
+
+    fun formatBirthday(dateString: String): String {
+        val inputFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("d.M.yyyy", Locale.GERMAN)
+
+        try {
+            val date = inputFormat.parse(dateString)
+            return date?.let { outputFormat.format(it) } ?: ""
+        } catch (e: Exception) {
+            println("Error formatting birthday: ${e.message}")
+            return dateString
+        }
+    }
+}

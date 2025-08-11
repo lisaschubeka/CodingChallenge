@@ -19,16 +19,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.codingchallenge.app.presentation.HL7ViewModel
+import androidx.navigation.NavController
+import com.example.codingchallenge.app.presentation.DetailViewModel
 import com.example.codingchallenge.app.presentation.LoadHL7FileEvent
 import kotlinx.coroutines.flow.collectLatest
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HL7Screen(viewModel: HL7ViewModel) {
+fun HL7DetailScreen(navController: NavController, viewModel: DetailViewModel, mshId: Long) {
 
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // TODO call loadFile(mshId) when this screen is shown
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -45,7 +48,6 @@ fun HL7Screen(viewModel: HL7ViewModel) {
         Column {
             UserHeader(
                 uiState.user,
-                viewModel::loadFromFileAndSaveAndLoadFromDatabase,
                 viewModel::formatBirthday
             )
 

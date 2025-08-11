@@ -1,6 +1,6 @@
 package com.example.codingchallenge.domain.repository
 
-import com.example.codingchallenge.domain.model.ObxReadStatus
+import com.example.codingchallenge.domain.model.hl7Segment.ObxReadStatus
 import kotlinx.coroutines.flow.Flow
 
 interface OBXReadStatusRepository {

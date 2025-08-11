@@ -34,7 +34,11 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
         )
     }
 
-    override fun createPIDSegment(stringSegment: List<String>, mshId: Long): PIDSegment {
+    override fun createPIDSegment(
+        stringSegmentWithIdentifier: List<String>,
+        mshId: Long
+    ): PIDSegment {
+        val stringSegment = stringSegmentWithIdentifier.subList(1, stringSegmentWithIdentifier.size)
         return PIDSegment(
             mshId = mshId,
             setId = stringSegment[0].toLong(),                            // PID.1

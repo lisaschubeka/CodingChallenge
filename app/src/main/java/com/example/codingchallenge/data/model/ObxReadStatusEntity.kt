@@ -5,8 +5,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.codingchallenge.domain.model.ObxReadStatus
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegmentEntity
+import com.example.codingchallenge.domain.model.hl7Segment.ObxReadStatus
 
 @Entity(
     tableName = "obx_read_status",

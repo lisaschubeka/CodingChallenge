@@ -3,7 +3,7 @@ package com.example.codingchallenge.data.repository
 import com.example.codingchallenge.app.AppDatabase
 import com.example.codingchallenge.data.model.ObxReadStatusEntity
 import com.example.codingchallenge.data.model.mapToDomain
-import com.example.codingchallenge.domain.model.ObxReadStatus
+import com.example.codingchallenge.domain.model.hl7Segment.ObxReadStatus
 import com.example.codingchallenge.domain.repository.OBXReadStatusRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

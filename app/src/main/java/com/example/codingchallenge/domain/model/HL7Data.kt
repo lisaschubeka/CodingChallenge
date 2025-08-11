@@ -10,5 +10,5 @@ data class HL7Data(
     val msh: MSHSegment?,
     val pid: PIDSegment?,
     val obxSegmentList: List<OBXSegment> = emptyList(),
-    val nteMap: Map<Long, List<NTESegment>> = emptyMap(),
+    val nteSegmentList: List<NTESegment> = emptyList(),
 )

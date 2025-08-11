@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -68,5 +69,6 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.room)
     kapt("androidx.room:room-compiler:2.7.2")
-
+    implementation(libs.androidx.navigation)
+//    implementation(libs.kotlinx.serialization)
 }
