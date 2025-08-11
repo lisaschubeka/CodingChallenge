@@ -46,6 +46,7 @@ class OverviewViewModel @Inject constructor(
             try {
                 val flowHL7FileUpdates = processHL7DataUseCase.observeChangesForOverview()
                 flowHL7FileUpdates.collectLatest { overviewUpdates ->
+                    Log.d("UI UPDATE", "New overview data received: ${overviewUpdates.size}")
                     _uiState.update {
                         it.copy(
                             isLoading = false,

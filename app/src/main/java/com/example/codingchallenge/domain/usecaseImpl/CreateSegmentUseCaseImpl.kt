@@ -84,6 +84,7 @@ class CreateSegmentUseCaseImpl @Inject constructor() : CreateSegmentUseCase {
 
     override fun createOBXSegment(stringSegment: List<String>, mshId: Long): OBXSegment {
         return OBXSegment(
+            obxId = null,
             mshId = mshId,
             setId = stringSegment[0].toLong(),                     // OBX.1
             valueType = stringSegment.getOrNull(1),                 // OBX.2

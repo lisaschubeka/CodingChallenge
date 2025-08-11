@@ -25,7 +25,7 @@ class ObserveFileUseCaseImpl @Inject constructor(
         obxSegment: OBXSegment, nteList: List<NTESegment>?, isRead: Boolean
     ): TestResult {
 
-        val id = obxSegment.setId
+        val id = obxSegment.obxId ?: 0L
         val testName = obxSegment.observationIdentifier?.split("^")?.get(1) ?: ""
         val value = obxSegment.observationValue ?: ""
         val unit = obxSegment.units ?: ""
@@ -78,7 +78,7 @@ class ObserveFileUseCaseImpl @Inject constructor(
     override fun mapToUser(pidSegment: PIDSegment?, mshSegment: MSHSegment?): User {
         val name = pidSegment?.patientName?.split("^")?.get(1) ?: "Unknown"
         val dob = pidSegment?.dateTimeOfBirth ?: "Unknown"
-        val diaryNumber = mshSegment?.receivingFacility ?: "Unknown"
+        val diaryNumber = mshSegment?.dateTimeOfMessage ?: "Unknown"
         return User(name, diaryNumber, dob)
 
     }

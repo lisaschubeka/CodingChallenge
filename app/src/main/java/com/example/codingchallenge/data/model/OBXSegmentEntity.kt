@@ -105,6 +105,7 @@ data class OBXSegmentEntity(
 
 fun OBXSegmentEntity.mapToDomain(): OBXSegment {
     return OBXSegment(
+        obxId = this.obxId,
         setId = this.setId,
         mshId = mshId,
         valueType = this.valueType,
@@ -131,6 +132,7 @@ fun OBXSegmentEntity.mapToDomain(): OBXSegment {
 fun OBXSegment.mapToEntity(): OBXSegmentEntity {
 
     return OBXSegmentEntity(
+        obxId = this.obxId ?: 0L,
         setId = this.setId,
         mshId = this.mshId,
         valueType = this.valueType,

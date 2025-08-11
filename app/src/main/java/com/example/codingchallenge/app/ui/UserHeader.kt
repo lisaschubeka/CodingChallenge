@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.codingchallenge.domain.model.User
 
 
@@ -30,6 +32,7 @@ import com.example.codingchallenge.domain.model.User
 fun UserHeader(
     user: User?,
     formatBirthday: (dateString: String) -> String,
+    navController: NavController
 ) {
     user?.let {
         Column(
@@ -40,12 +43,16 @@ fun UserHeader(
         ) {
             Spacer(Modifier.height(20.dp))
 
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = Color.White,
+            IconButton(
+                onClick = { navController.popBackStack() },
                 modifier = Modifier.padding(bottom = 8.dp)
-            )
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
             Row(modifier = Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                 Column {
                     Text(

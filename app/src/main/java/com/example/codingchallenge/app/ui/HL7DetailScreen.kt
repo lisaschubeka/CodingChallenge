@@ -31,9 +31,8 @@ fun HL7DetailScreen(navController: NavController, viewModel: DetailViewModel, ms
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // TODO call loadFile(mshId) when this screen is shown
-
     LaunchedEffect(Unit) {
+        viewModel.loadFile(mshId)
         viewModel.events.collectLatest { event ->
             when (event) {
                 is LoadHL7FileEvent.ShowSnackbar -> {
@@ -48,7 +47,8 @@ fun HL7DetailScreen(navController: NavController, viewModel: DetailViewModel, ms
         Column {
             UserHeader(
                 uiState.user,
-                viewModel::formatBirthday
+                viewModel::formatBirthday,
+                navController
             )
 
             if (uiState.testResults.isNotEmpty()) {
@@ -67,6 +67,8 @@ fun HL7DetailScreen(navController: NavController, viewModel: DetailViewModel, ms
                             .fillMaxWidth()
                             .padding(top = 8.dp)
                     ) {
+                        // TODO should be ${testResults.size}, there is a bug here yet to be fixed.
+                        // TODO The bug is that there are (actual testResults + 1) in viewModel.notReadResults
                         items(uiState.testResults) { result ->
                             result.value.toFloatOrNull()?.let {
                                 TestResultCard(

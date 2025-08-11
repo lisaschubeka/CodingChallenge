@@ -7,15 +7,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.codingchallenge.domain.model.OverviewFileData
@@ -29,7 +33,10 @@ fun OverviewFileCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCardClick(overviewFileData) }
+            .clickable { onCardClick(overviewFileData) },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(6.dp),
+        colors = CardColors(Color.White, Color.Black, Color.LightGray, Color.DarkGray),
     ) {
         Row(
             modifier = Modifier
@@ -40,7 +47,7 @@ fun OverviewFileCard(
             Icon(
                 imageVector = Icons.Default.AccountCircle,
                 contentDescription = "File Icon",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = Color(0xFF3E70F7),
                 modifier = Modifier.padding(end = 16.dp)
             )
 
@@ -55,7 +62,7 @@ fun OverviewFileCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Akte Nr.: ${overviewFileData.diaryNumber}",
+                    text = "Tagebuchnummer: ${overviewFileData.diaryNumber}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

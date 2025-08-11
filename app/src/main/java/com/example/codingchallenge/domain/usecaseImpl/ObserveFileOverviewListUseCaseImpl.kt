@@ -77,9 +77,16 @@ class ObserveFileOverviewListUseCaseImpl @Inject constructor(
             if (segmentName == "OBX") {
                 val obxSegment =
                     segmentCreator.createOBXSegment(stringSegment = fields, mshId = mshId)
-                if (!obxSegment.referencesRange.isNullOrBlank() && obxSegment.observationValue != "!!Storno") {
+                if (!obxSegment.referencesRange.isNullOrBlank()
+                    && obxSegment.observationValue != "!!Storno"
+                    && obxSegment.observationValue != null &&
+                    obxSegment.observationValue.toFloatOrNull() != null
+                ) {
                     obxSegment.referencesRange.let { Log.w(TAG, it) }
                     obxId = fileRepository.saveOBXSegment(obxSegment = obxSegment)
+                    obxReadStatusRepository.addObxReadStatusAsUnread(obxId)
+                } else {
+                    obxId = -1L
                 }
             }
             // if obxNr is -1, then it is unclear where the NTE segment belongs to and
@@ -88,8 +95,8 @@ class ObserveFileOverviewListUseCaseImpl @Inject constructor(
                 val nteSegment =
                     segmentCreator.createNTESegment(stringSegment = fields, obxId = obxId)
                 fileRepository.saveNTESegment(nteSegment)
-                obxReadStatusRepository.addObxReadStatusAsUnread(obxId)
             }
+
 
         }
 
@@ -98,8 +105,11 @@ class ObserveFileOverviewListUseCaseImpl @Inject constructor(
     override fun observeChangesForOverview(): Flow<List<OverviewFileData>> {
         return fileRepository.observeOverviewFileData().transform { segmentList ->
             val transformedList = segmentList.map { segment ->
-                val name = segment.pidSegmentEntity.patientName?.split("^")?.get(1) ?: "Unknown"
-                val diaryNumber = segment.mshSegmentEntity.receivingFacility ?: "Unknown"
+                var name = segment.pidSegmentEntity.patientName ?: "Unknown"
+                if (name.contains("^")) {
+                    name = segment.pidSegmentEntity.patientName?.split("^")?.get(1) ?: "Unknown"
+                }
+                val diaryNumber = segment.mshSegmentEntity.dateTimeOfMessage ?: "Unknown"
                 val obxSegmentList = segment.obxSegmentEntityList.size
                 OverviewFileData(
                     segment.mshSegmentEntity.mshId,
