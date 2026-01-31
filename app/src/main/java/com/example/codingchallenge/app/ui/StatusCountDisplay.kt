@@ -44,10 +44,8 @@ fun StatusCountDisplay(
             verticalArrangement = Arrangement.Center
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
-                // TODO should be ${testResults.size}, there is a bug here yet to be fixed.
-                // TODO The bug is that there are (actual testResults + 1) in viewModel.notReadResults
                 Text(
-                    text = "${testResults.filter { testResult -> !testResult.isRead }.size - 1}",
+                    text = "${testResults.filter { testResult -> !testResult.isRead }.size}",
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )

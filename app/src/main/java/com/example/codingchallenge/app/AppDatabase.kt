@@ -8,9 +8,9 @@ import com.example.codingchallenge.data.dao.NTESegmentDao
 import com.example.codingchallenge.data.dao.OBXReadStatusDao
 import com.example.codingchallenge.data.dao.OBXSegmentDao
 import com.example.codingchallenge.data.dao.PIDSegmentDao
+import com.example.codingchallenge.data.model.NTESegmentEntity
 import com.example.codingchallenge.data.model.ObxReadStatusEntity
 import com.example.codingchallenge.domain.model.hl7Segment.MSHSegmentEntity
-import com.example.codingchallenge.domain.model.hl7Segment.NTESegmentEntity
 import com.example.codingchallenge.domain.model.hl7Segment.OBXSegmentEntity
 import com.example.codingchallenge.domain.model.hl7Segment.PIDSegmentEntity
 

@@ -3,25 +3,28 @@ package com.example.codingchallenge.domain.model.hl7Segment
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "pid_segments",
     foreignKeys = [ForeignKey(
         entity = MSHSegmentEntity::class,
-        parentColumns = ["id"],
+        parentColumns = ["mshId"],
         childColumns = ["msh_id"],
         onDelete = ForeignKey.CASCADE
-    )]
+    )],
+    indices = [Index(value = ["msh_id", "set_id"], unique = true)]
 )
 data class PIDSegmentEntity(
-    @PrimaryKey
-    @ColumnInfo(name = "set_id")
-    val setId: Long,
-    // TODO will need combine this with the primary key when saving multiple files
-    // Foreign key reference
-    @ColumnInfo(name = "msh_id", index = true)
+    @PrimaryKey(autoGenerate = true)
+    val pidId: Long = 0,
+
+    @ColumnInfo(name = "msh_id") // Foreign key to MSHSegmentEntity
     val mshId: Long,
+
+    @ColumnInfo(name = "set_id")
+    val setId: Long, // The set_id from the HL7 message (not primary key)
 
     // PID.2 - Patient ID (external ID) (CX) - Optional
     @ColumnInfo(name = "patient_id_external")
@@ -174,6 +177,7 @@ data class PIDSegmentEntity(
 fun PIDSegmentEntity.mapToDomain(): PIDSegment {
 
     return PIDSegment(
+        mshId = this.mshId,
         setId = this.setId,
         patientID = this.patientIdExternal,
         patientIdentifierList = this.patientIdInternal,
@@ -215,10 +219,10 @@ fun PIDSegmentEntity.mapToDomain(): PIDSegment {
     )
 }
 
-fun PIDSegment.mapToEntity(mshId: Long): PIDSegmentEntity {
+fun PIDSegment.mapToEntity(): PIDSegmentEntity {
     return PIDSegmentEntity(
         setId = this.setId,
-        mshId = mshId,
+        mshId = this.mshId,
         patientIdExternal = this.patientID,
         patientIdInternal = this.patientIdentifierList,
         alternatePatientId = this.alternatePatientID,

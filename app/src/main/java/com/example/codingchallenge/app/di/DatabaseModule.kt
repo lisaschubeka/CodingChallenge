@@ -29,6 +29,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "coding_challenge_database"
         )
+            .fallbackToDestructiveMigration(true)
             .build()
     }
 

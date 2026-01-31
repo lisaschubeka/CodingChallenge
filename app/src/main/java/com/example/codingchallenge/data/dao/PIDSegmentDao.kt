@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PIDSegmentDao {
     @Insert
-    suspend fun insertPIDSegmentEntity(message: PIDSegmentEntity): Long
+    suspend fun insertPIDSegmentEntity(segment: PIDSegmentEntity): Long
 
-    @Query("SELECT * FROM pid_segments ORDER BY set_id DESC LIMIT 1")
-    fun observePidSegment(): Flow<PIDSegmentEntity?>
+    @Query("SELECT * FROM pid_segments WHERE pidId = :pidId LIMIT 1")
+    fun observePidSegment(pidId: Long): Flow<PIDSegmentEntity>
 }
